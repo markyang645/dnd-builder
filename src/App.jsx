@@ -1,16 +1,27 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useCharacterStore } from './state/store'
 import { raceData, appearanceOptions, inchesToFeetInches } from './data/raceData'
-
-// Helper to calculate ability modifier
-const getModifier = (score) => {
-  const mod = Math.floor((score - 10) / 2)
-  return mod >= 0 ? `+${mod}` : `${mod}`
-}
+import { 
+  abilityLabels, 
+  skills, 
+  backgroundSkills, 
+  classSavingThrows,
+  getModifier,
+} from './data/dndRules'
 
 function App() {
   const [activeTab, setActiveTab] = useState(0)
-  const { character, createCharacter, updateCharacter, updateAbility } = useCharacterStore()
+  const [showStatOptions, setShowStatOptions] = useState(false)
+  const { 
+    character, 
+    createCharacter, 
+    updateCharacter, 
+    updateAbility,
+    setStatMethod,
+    getPointBuyCost,
+    validatePointBuy,
+    calculateDerivedStats,
+  } = useCharacterStore()
 
   const tabs = [
     { name: 'WHO YOU ARE?', icon: '👤', color: 'bg-tab-purple', friend: 'Mark/Star/Dante' },
@@ -22,10 +33,14 @@ function App() {
   ]
 
   // Get current race data for slider ranges
-  const currentRace = raceData[character.race] || raceData.human
-  const ageValue = character.age || currentRace.ageRange.min
-  const heightValue = character.height || currentRace.heightRange.min
-  const weightValue = character.weight || currentRace.weightRange.min
+  const currentRace = raceData[character?.race] || raceData.human
+  const ageValue = character?.age || currentRace.ageRange.min
+  const heightValue = character?.height || currentRace.heightRange.min
+  const weightValue = character?.weight || currentRace.weightRange.min
+
+  // Calculate point buy cost
+  const pointBuyCost = character ? getPointBuyCost(character.abilities) : 0
+  const pointBuyValid = character ? validatePointBuy(character.abilities) : true
 
   if (!character) {
     return (
@@ -34,11 +49,14 @@ function App() {
           <h1 className="text-4xl font-bold mb-6 text-white">🎲 D&D Builder</h1>
           <p className="text-dark-purple-300 mb-8">Create your next legendary character</p>
           <button
-            onClick={() => createCharacter('New Character')}
-            className="w-full bg-dark-purple-600 hover:bg-dark-purple-500 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg text-lg"
+            onClick={() => createCharacter('New Character', 'standard')}
+            className="w-full bg-dark-purple-600 hover:bg-dark-purple-500 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg text-lg mb-4"
           >
             + Create New Character
           </button>
+          <p className="text-dark-purple-400 text-sm">
+            Uses Standard Array (15, 14, 13, 12, 10, 8)
+          </p>
         </div>
       </div>
     )
@@ -50,14 +68,69 @@ function App() {
       <header className="bg-dark-purple-900 border-b border-dark-purple-700 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-white">🎲 D&D Character Builder</h1>
-            <button
-              onClick={() => createCharacter('New Character')}
-              className="bg-dark-purple-800 hover:bg-dark-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 border border-dark-purple-600"
-            >
-              + New
-            </button>
+            <div>
+              <h1 className="text-2xl font-bold text-white">🎲 D&D Character Builder</h1>
+              <p className="text-dark-purple-300 text-sm">
+                {character.name} • Level {character.level} {character.race ? character.race.charAt(0).toUpperCase() + character.race.slice(1) : ''} {character.class ? character.class.charAt(0).toUpperCase() + character.class.slice(1) : ''}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowStatOptions(!showStatOptions)}
+                className="bg-dark-purple-800 hover:bg-dark-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 border border-dark-purple-600"
+              >
+                📊 Stats
+              </button>
+              <button
+                onClick={() => createCharacter('New Character', 'standard')}
+                className="bg-dark-purple-800 hover:bg-dark-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 border border-dark-purple-600"
+              >
+                + New
+              </button>
+            </div>
           </div>
+
+          {/* Stat Generation Options Panel */}
+          {showStatOptions && (
+            <div className="bg-dark-purple-950 border border-dark-purple-700 rounded-lg p-4 mb-4">
+              <h3 className="text-lg font-bold text-white mb-3">Ability Score Generation</h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                <button
+                  onClick={() => setStatMethod('standard')}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    character.statMethod === 'standard'
+                      ? 'bg-dark-purple-600 border-white text-white'
+                      : 'bg-dark-purple-900 border-dark-purple-700 text-dark-purple-300 hover:border-dark-purple-500'
+                  }`}
+                >
+                  <div className="font-bold">Standard Array</div>
+                  <div className="text-sm opacity-80">15, 14, 13, 12, 10, 8</div>
+                </button>
+                <button
+                  onClick={() => setStatMethod('pointbuy')}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    character.statMethod === 'pointbuy'
+                      ? 'bg-dark-purple-600 border-white text-white'
+                      : 'bg-dark-purple-900 border-dark-purple-700 text-dark-purple-300 hover:border-dark-purple-500'
+                  }`}
+                >
+                  <div className="font-bold">Point Buy</div>
+                  <div className="text-sm opacity-80">27 points to spend</div>
+                </button>
+                <button
+                  onClick={() => setStatMethod('roll')}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    character.statMethod === 'roll'
+                      ? 'bg-dark-purple-600 border-white text-white'
+                      : 'bg-dark-purple-900 border-dark-purple-700 text-dark-purple-300 hover:border-dark-purple-500'
+                  }`}
+                >
+                  <div className="font-bold">Roll 4d6</div>
+                  <div className="text-sm opacity-80">Drop lowest die</div>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Tab Navigation */}
           <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
@@ -82,6 +155,60 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Character Stats Summary Panel */}
+        <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 mb-8 shadow-xl">
+          <h2 className="text-2xl font-bold text-white mb-4">📊 Character Stats</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+            {/* HP */}
+            <div className="bg-dark-purple-950 p-4 rounded-lg border border-dark-purple-700 text-center">
+              <div className="text-dark-purple-400 text-sm">Hit Points</div>
+              <div className="text-3xl font-bold text-white">{character.hitPoints || 0}</div>
+            </div>
+            
+            {/* AC */}
+            <div className="bg-dark-purple-950 p-4 rounded-lg border border-dark-purple-700 text-center">
+              <div className="text-dark-purple-400 text-sm">Armor Class</div>
+              <div className="text-3xl font-bold text-white">{character.armorClass || 10}</div>
+            </div>
+            
+            {/* Initiative */}
+            <div className="bg-dark-purple-950 p-4 rounded-lg border border-dark-purple-700 text-center">
+              <div className="text-dark-purple-400 text-sm">Initiative</div>
+              <div className="text-3xl font-bold text-white">
+                {character.initiative >= 0 ? '+' : ''}{character.initiative || 0}
+              </div>
+            </div>
+            
+            {/* Speed */}
+            <div className="bg-dark-purple-950 p-4 rounded-lg border border-dark-purple-700 text-center">
+              <div className="text-dark-purple-400 text-sm">Speed</div>
+              <div className="text-3xl font-bold text-white">{character.speed || 30}ft</div>
+            </div>
+            
+            {/* Proficiency Bonus */}
+            <div className="bg-dark-purple-950 p-4 rounded-lg border border-dark-purple-700 text-center">
+              <div className="text-dark-purple-400 text-sm">Proficiency</div>
+              <div className="text-3xl font-bold text-white">
+                +{character.proficiencyBonus || 2}
+              </div>
+            </div>
+            
+            {/* Passive Perception */}
+            <div className="bg-dark-purple-950 p-4 rounded-lg border border-dark-purple-700 text-center">
+              <div className="text-dark-purple-400 text-sm">Passive Perception</div>
+              <div className="text-3xl font-bold text-white">
+                {10 + (character.modifiers?.wis || 0)}
+              </div>
+            </div>
+            
+            {/* Level */}
+            <div className="bg-dark-purple-950 p-4 rounded-lg border border-dark-purple-700 text-center">
+              <div className="text-dark-purple-400 text-sm">Level</div>
+              <div className="text-3xl font-bold text-white">{character.level || 1}</div>
+            </div>
+          </div>
+        </div>
+
         {/* TAB 1: WHO YOU ARE? */}
         {activeTab === 0 && (
           <div className="space-y-6">
@@ -365,13 +492,31 @@ function App() {
           <div className="space-y-6">
             <h2 className="text-3xl font-bold text-dark-purple-300 mb-6">What You Got?</h2>
             
+            {/* Ability Scores */}
             <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl">
               <h3 className="text-xl font-bold mb-6 text-dark-purple-300">Ability Scores</h3>
+              
+              {/* Point Buy Info */}
+              {character.statMethod === 'pointbuy' && (
+                <div className={`mb-4 p-4 rounded-lg ${
+                  pointBuyValid 
+                    ? 'bg-green-900/50 border border-green-700' 
+                    : 'bg-red-900/50 border border-red-700'
+                }`}>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white font-semibold">Point Buy Cost: {pointBuyCost} / 27</span>
+                    <span className={pointBuyValid ? 'text-green-400' : 'text-red-400'}>
+                      {pointBuyValid ? '✅ Valid' : '❌ Over budget'}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {Object.entries(character.abilities).map(([ability, score]) => (
                   <div key={ability} className="bg-dark-purple-950 p-4 rounded-lg border border-dark-purple-700">
                     <label className="block text-sm font-medium mb-2 uppercase text-dark-purple-400">
-                      {ability}
+                      {abilityLabels[ability] || ability}
                     </label>
                     <input
                       type="number"
@@ -382,8 +527,28 @@ function App() {
                       className="w-full bg-dark-purple-900 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white text-center text-2xl font-bold mb-2 focus:outline-none focus:border-dark-purple-500 transition-all"
                     />
                     <div className="text-center text-lg font-bold text-dark-purple-300">
-                      {getModifier(score)}
+                      Modifier: {getModifier(score) >= 0 ? '+' : ''}{getModifier(score)}
                     </div>
+                    {character.modifiers && character.modifiers[ability] !== getModifier(score) && (
+                      <div className="text-center text-sm text-dark-purple-400 mt-1">
+                        With racial ASI: {character.modifiers[ability] >= 0 ? '+' : ''}{character.modifiers[ability]}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Saving Throws */}
+            <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl">
+              <h3 className="text-xl font-bold mb-4 text-dark-purple-300">Saving Throws</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {Object.entries(character.savingThrows || {}).map(([ability, value]) => (
+                  <div key={ability} className="bg-dark-purple-950 p-3 rounded-lg border border-dark-purple-700 flex justify-between items-center">
+                    <span className="text-dark-purple-300 capitalize">{abilityLabels[ability] || ability}</span>
+                    <span className="text-2xl font-bold text-white">
+                      {value >= 0 ? '+' : ''}{value}
+                    </span>
                   </div>
                 ))}
               </div>
