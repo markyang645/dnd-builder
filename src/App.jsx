@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useCharacterStore } from './state/store'
+import { raceData, appearanceOptions, inchesToFeetInches } from './data/raceData'
 
 // Helper to calculate ability modifier
 const getModifier = (score) => {
@@ -19,6 +20,12 @@ function App() {
     { name: 'WHAT YA SHARE?', icon: '📤' },
     { name: 'WHAT YA MAKE?', icon: '🛠️' },
   ]
+
+  // Get current race data for slider ranges
+  const currentRace = raceData[character.race] || raceData.human
+  const ageValue = character.age || currentRace.ageRange.min
+  const heightValue = character.height || currentRace.heightRange.min
+  const weightValue = character.weight || currentRace.weightRange.min
 
   if (!character) {
     return (
@@ -80,6 +87,7 @@ function App() {
             <h2 className="text-3xl font-bold text-dark-purple-300 mb-6">Who You Are?</h2>
             
             <div className="grid md:grid-cols-2 gap-6">
+              {/* Race & Identity */}
               <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl">
                 <h3 className="text-xl font-bold mb-4 text-dark-purple-300">Race & Identity</h3>
                 <div className="space-y-4">
@@ -91,15 +99,9 @@ function App() {
                       className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all"
                     >
                       <option value="">Select Race...</option>
-                      <option value="human">Human</option>
-                      <option value="elf">Elf</option>
-                      <option value="dwarf">Dwarf</option>
-                      <option value="halfling">Halfling</option>
-                      <option value="dragonborn">Dragonborn</option>
-                      <option value="gnome">Gnome</option>
-                      <option value="half-elf">Half-Elf</option>
-                      <option value="half-orc">Half-Orc</option>
-                      <option value="tiefling">Tiefling</option>
+                      {Object.entries(raceData).map(([key, data]) => (
+                        <option key={key} value={key}>{data.name}</option>
+                      ))}
                     </select>
                   </div>
 
@@ -125,86 +127,140 @@ function App() {
                 </div>
               </div>
 
+              {/* Physical Description */}
               <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl">
                 <h3 className="text-xl font-bold mb-4 text-dark-purple-300">Physical Description</h3>
                 <div className="space-y-4">
+                  {/* Age Slider */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-dark-purple-300">Age</label>
+                    <label className="block text-sm font-medium mb-2 text-dark-purple-300">
+                      Age: <span className="text-dark-purple-400">{ageValue} years</span>
+                    </label>
                     <input
-                      type="text"
-                      value={character.age}
-                      onChange={(e) => updateCharacter('age', e.target.value)}
-                      className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all"
-                      placeholder="e.g., 25"
+                      type="range"
+                      min={currentRace.ageRange.min}
+                      max={currentRace.ageRange.max}
+                      value={ageValue}
+                      onChange={(e) => updateCharacter('age', parseInt(e.target.value))}
+                      className="w-full h-2 bg-dark-purple-950 rounded-lg appearance-none cursor-pointer accent-dark-purple-500"
                     />
+                    <div className="flex justify-between text-xs text-dark-purple-400 mt-1">
+                      <span>{currentRace.ageRange.min}</span>
+                      <span>{currentRace.ageRange.max}</span>
+                    </div>
                   </div>
 
+                  {/* Height Slider */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-dark-purple-300">
+                      Height: <span className="text-dark-purple-400">{inchesToFeetInches(heightValue)}</span>
+                    </label>
+                    <input
+                      type="range"
+                      min={currentRace.heightRange.min}
+                      max={currentRace.heightRange.max}
+                      value={heightValue}
+                      onChange={(e) => updateCharacter('height', parseInt(e.target.value))}
+                      className="w-full h-2 bg-dark-purple-950 rounded-lg appearance-none cursor-pointer accent-dark-purple-500"
+                    />
+                    <div className="flex justify-between text-xs text-dark-purple-400 mt-1">
+                      <span>{inchesToFeetInches(currentRace.heightRange.min)}</span>
+                      <span>{inchesToFeetInches(currentRace.heightRange.max)}</span>
+                    </div>
+                  </div>
+
+                  {/* Weight Slider */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-dark-purple-300">
+                      Weight: <span className="text-dark-purple-400">{weightValue} lbs</span>
+                    </label>
+                    <input
+                      type="range"
+                      min={currentRace.weightRange.min}
+                      max={currentRace.weightRange.max}
+                      value={weightValue}
+                      onChange={(e) => updateCharacter('weight', parseInt(e.target.value))}
+                      className="w-full h-2 bg-dark-purple-950 rounded-lg appearance-none cursor-pointer accent-dark-purple-500"
+                    />
+                    <div className="flex justify-between text-xs text-dark-purple-400 mt-1">
+                      <span>{currentRace.weightRange.min}</span>
+                      <span>{currentRace.weightRange.max}</span>
+                    </div>
+                  </div>
+
+                  {/* Gender Input */}
                   <div>
                     <label className="block text-sm font-medium mb-2 text-dark-purple-300">Gender</label>
                     <input
                       type="text"
-                      value={character.gender}
+                      value={character.gender || ''}
                       onChange={(e) => updateCharacter('gender', e.target.value)}
                       className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all"
                       placeholder="e.g., Male, Female, Non-binary"
                     />
                   </div>
+                </div>
+              </div>
+            </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-dark-purple-300">Height</label>
-                      <input
-                        type="text"
-                        value={character.height}
-                        onChange={(e) => updateCharacter('height', e.target.value)}
-                        className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all"
-                        placeholder="e.g., 5'10"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-dark-purple-300">Weight</label>
-                      <input
-                        type="text"
-                        value={character.weight}
-                        onChange={(e) => updateCharacter('weight', e.target.value)}
-                        className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all"
-                        placeholder="e.g., 150 lbs"
-                      />
-                    </div>
-                  </div>
+            {/* Appearance Dropdowns */}
+            <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl">
+              <h3 className="text-xl font-bold mb-4 text-dark-purple-300">Appearance Details</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-dark-purple-300">Eye Color</label>
+                  <select
+                    value={character.eyes || ''}
+                    onChange={(e) => updateCharacter('eyes', e.target.value)}
+                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all"
+                  >
+                    <option value="">Select...</option>
+                    {appearanceOptions.eyeColors.map(color => (
+                      <option key={color} value={color}>{color}</option>
+                    ))}
+                  </select>
+                </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-dark-purple-300">Eyes</label>
-                    <input
-                      type="text"
-                      value={character.eyes}
-                      onChange={(e) => updateCharacter('eyes', e.target.value)}
-                      className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all"
-                      placeholder="Eye color"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-dark-purple-300">Hair Color</label>
+                  <select
+                    value={character.hair || ''}
+                    onChange={(e) => updateCharacter('hair', e.target.value)}
+                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all"
+                  >
+                    <option value="">Select...</option>
+                    {appearanceOptions.hairColors.map(color => (
+                      <option key={color} value={color}>{color}</option>
+                    ))}
+                  </select>
+                </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-dark-purple-300">Hair</label>
-                    <input
-                      type="text"
-                      value={character.hair}
-                      onChange={(e) => updateCharacter('hair', e.target.value)}
-                      className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all"
-                      placeholder="Hair color/style"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-dark-purple-300">Hair Style</label>
+                  <select
+                    value={character.hairStyle || ''}
+                    onChange={(e) => updateCharacter('hairStyle', e.target.value)}
+                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all"
+                  >
+                    <option value="">Select...</option>
+                    {appearanceOptions.hairStyles.map(style => (
+                      <option key={style} value={style}>{style}</option>
+                    ))}
+                  </select>
+                </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-dark-purple-300">Skin</label>
-                    <input
-                      type="text"
-                      value={character.skin}
-                      onChange={(e) => updateCharacter('skin', e.target.value)}
-                      className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all"
-                      placeholder="Skin tone"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-dark-purple-300">Skin Tone</label>
+                  <select
+                    value={character.skin || ''}
+                    onChange={(e) => updateCharacter('skin', e.target.value)}
+                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all"
+                  >
+                    <option value="">Select...</option>
+                    {appearanceOptions.skinTones.map(tone => (
+                      <option key={tone} value={tone}>{tone}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -321,7 +377,7 @@ function App() {
               <div>
                 <label className="block text-sm font-medium mb-2 text-dark-purple-300">Personality Traits</label>
                 <textarea
-                  value={character.personalityTraits}
+                  value={character.personalityTraits || ''}
                   onChange={(e) => updateCharacter('personalityTraits', e.target.value)}
                   className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all min-h-[100px]"
                   placeholder="Describe your personality..."
@@ -331,7 +387,7 @@ function App() {
               <div>
                 <label className="block text-sm font-medium mb-2 text-dark-purple-300">Ideals</label>
                 <textarea
-                  value={character.ideals}
+                  value={character.ideals || ''}
                   onChange={(e) => updateCharacter('ideals', e.target.value)}
                   className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all min-h-[100px]"
                   placeholder="What do you believe in?"
@@ -341,7 +397,7 @@ function App() {
               <div>
                 <label className="block text-sm font-medium mb-2 text-dark-purple-300">Bonds</label>
                 <textarea
-                  value={character.bonds}
+                  value={character.bonds || ''}
                   onChange={(e) => updateCharacter('bonds', e.target.value)}
                   className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all min-h-[100px]"
                   placeholder="What ties you to the world?"
@@ -351,7 +407,7 @@ function App() {
               <div>
                 <label className="block text-sm font-medium mb-2 text-dark-purple-300">Flaws</label>
                 <textarea
-                  value={character.flaws}
+                  value={character.flaws || ''}
                   onChange={(e) => updateCharacter('flaws', e.target.value)}
                   className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all min-h-[100px]"
                   placeholder="What are your weaknesses?"
@@ -361,7 +417,7 @@ function App() {
               <div>
                 <label className="block text-sm font-medium mb-2 text-dark-purple-300">Backstory</label>
                 <textarea
-                  value={character.backstory}
+                  value={character.backstory || ''}
                   onChange={(e) => updateCharacter('backstory', e.target.value)}
                   className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all min-h-[200px]"
                   placeholder="Tell your story..."
@@ -432,4 +488,3 @@ function App() {
 }
 
 export default App
-// Test auto-commit
