@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useCharacterStore } from './state/store'
 import { raceData, appearanceOptions, inchesToFeetInches } from './data/raceData'
-import { abilityLabels } from './data/dndRules'
+import { abilityLabels, asiLevels } from './data/dndRules'
 
 function App() {
   const [activeTab, setActiveTab] = useState(0)
@@ -24,6 +24,8 @@ function App() {
     rollLevelUpHP,
     rollHistory,
     clearRollHistory,
+    validationErrors,
+    clearValidationErrors,
   } = useCharacterStore()
 
   const tabs = [
@@ -71,7 +73,6 @@ function App() {
       {/* Sidebar - Stats Panel */}
       <aside className={`fixed left-0 top-0 h-full bg-dark-purple-900/90 backdrop-blur-sm border-r border-dark-purple-700 z-40 transition-all duration-300 ${sidebarOpen ? 'w-72' : 'w-0'} overflow-hidden`}>
         <div className="p-4 h-full overflow-y-auto">
-          {/* Toggle Button */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="absolute -right-3 top-4 bg-dark-purple-700 hover:bg-dark-purple-600 text-white rounded-full p-1 border border-dark-purple-500"
@@ -79,7 +80,6 @@ function App() {
             {sidebarOpen ? '◀' : '▶'}
           </button>
 
-          {/* Character Info */}
           <div className="mb-4 pb-4 border-b border-dark-purple-700">
             <h2 className="text-lg font-bold text-white">{character.name}</h2>
             <p className="text-xs text-dark-purple-300">
@@ -87,7 +87,6 @@ function App() {
             </p>
           </div>
 
-          {/* Core Stats */}
           <div className="space-y-3 text-xs">
             <div className="bg-dark-purple-950 p-2 rounded border border-dark-purple-700">
               <div className="text-dark-purple-400">HP</div>
@@ -142,32 +141,72 @@ function App() {
               <div className="text-dark-purple-400">Passive Perception</div>
               <div className="text-xl font-bold text-white">{10 + (character.modifiers?.wis || 0)}</div>
             </div>
-          </div>
 
-          {/* Ability Scores */}
-          <div className="mt-4 pt-4 border-t border-dark-purple-700">
-            <h3 className="text-xs font-bold text-dark-purple-300 mb-2">Abilities</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {Object.entries(character.abilities).map(([ability, score]) => (
-                <div key={ability} className="bg-dark-purple-950 p-2 rounded border border-dark-purple-700 text-center">
-                  <div className="text-[10px] text-dark-purple-400 uppercase">{ability}</div>
-                  <div className="text-lg font-bold text-white">{score}</div>
-                  <div className="text-[10px] text-dark-purple-300">
-                    {(score - 10) >= 0 ? '+' : ''}{Math.floor((score - 10) / 2)}
+            {/* Additional Combat Stats */}
+            <div className="mt-4 pt-4 border-t border-dark-purple-700 space-y-2">
+              <div className="bg-dark-purple-950 p-2 rounded border border-dark-purple-700">
+                <div className="text-dark-purple-400 text-[10px]">Spell Save DC</div>
+                <div className="text-lg font-bold text-white">{character.spellSaveDC || 0}</div>
+              </div>
+              <div className="bg-dark-purple-950 p-2 rounded border border-dark-purple-700">
+                <div className="text-dark-purple-400 text-[10px]">Attack Bonus</div>
+                <div className="text-lg font-bold text-white">+{character.attackBonus || 0}</div>
+              </div>
+              <div className="bg-dark-purple-950 p-2 rounded border border-dark-purple-700">
+                <div className="text-dark-purple-400 text-[10px]">Carrying Capacity</div>
+                <div className="text-lg font-bold text-white">{character.carryingCapacity || 150} lbs</div>
+              </div>
+              <div className="bg-dark-purple-950 p-2 rounded border border-dark-purple-700">
+                <div className="text-dark-purple-400 text-[10px]">Push/Drag/Lift</div>
+                <div className="text-lg font-bold text-white">{character.pushDragLift || 300} lbs</div>
+              </div>
+              <div className="bg-dark-purple-950 p-2 rounded border border-dark-purple-700">
+                <div className="text-dark-purple-400 text-[10px]">ASI Available</div>
+                <div className="text-lg font-bold text-white">{character.asiAvailable || 0}</div>
+                {character.asiAvailable > 0 && (
+                  <div className="text-[10px] text-green-400 mt-1">
+                    Next: Lv.{asiLevels.find(l => l > character.level) || '—'}
                   </div>
-                </div>
-              ))}
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Roll History Button */}
-          <div className="mt-4 pt-4 border-t border-dark-purple-700">
-            <button
-              onClick={() => setShowRollHistory(!showRollHistory)}
-              className="w-full bg-dark-purple-800 hover:bg-dark-purple-700 text-white text-xs py-2 px-3 rounded transition-all"
-            >
-              📜 Roll History ({rollHistory?.length || 0})
-            </button>
+            {/* Ability Scores */}
+            <div className="mt-4 pt-4 border-t border-dark-purple-700">
+              <h3 className="text-xs font-bold text-dark-purple-300 mb-2">Abilities</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {Object.entries(character.abilities).map(([ability, score]) => (
+                  <div key={ability} className="bg-dark-purple-950 p-2 rounded border border-dark-purple-700 text-center">
+                    <div className="text-[10px] text-dark-purple-400 uppercase">{ability}</div>
+                    <div className="text-lg font-bold text-white">{score}</div>
+                    <div className="text-[10px] text-dark-purple-300">
+                      {(score - 10) >= 0 ? '+' : ''}{Math.floor((score - 10) / 2)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Validation Errors */}
+            {validationErrors?.length > 0 && (
+              <div className="mt-4 p-3 bg-red-900/50 border border-red-700 rounded text-[10px] text-red-300">
+                <div className="font-bold mb-1">⚠️ Errors:</div>
+                {validationErrors.map((err, i) => (
+                  <div key={i}>• {err}</div>
+                ))}
+                <button onClick={clearValidationErrors} className="mt-2 text-red-400 hover:text-white underline">Dismiss</button>
+              </div>
+            )}
+
+            {/* Roll History Button */}
+            <div className="mt-4 pt-4 border-t border-dark-purple-700">
+              <button
+                onClick={() => setShowRollHistory(!showRollHistory)}
+                className="w-full bg-dark-purple-800 hover:bg-dark-purple-700 text-white text-xs py-2 px-3 rounded transition-all"
+              >
+                📜 Roll History ({rollHistory?.length || 0})
+              </button>
+            </div>
           </div>
         </div>
       </aside>
@@ -399,7 +438,7 @@ function App() {
                 <div className={`p-3 rounded-lg ${pointBuyValid ? 'bg-green-900/50 border border-green-700' : 'bg-red-900/50 border border-red-700'}`}>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-white font-semibold">Point Buy: {pointBuyCost} / 27</span>
-                    <span className={pointBuyValid ? 'text-green-400' : 'text-red-400'}>{pointBuyValid ? '✅' : '❌'}</span>
+                    <span className={pointBuyValid ? 'text-green-400' : 'text-red-400'}>{pointBuyValid ? '✅ Valid' : '❌ Over budget'}</span>
                   </div>
                 </div>
               )}
