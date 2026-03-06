@@ -12,14 +12,14 @@ function App() {
   const [activeTab, setActiveTab] = useState(0)
   const { character, createCharacter, updateCharacter, updateAbility } = useCharacterStore()
 
- const tabs = [
-  { name: 'WHO YOU ARE?', icon: '👤', color: 'bg-purple-600', friend: 'Mark/Star/Dante' },
-  { name: 'WHAT YOU DO?', icon: '⚔️', color: 'bg-blood-red', friend: 'Zefhyr' },
-  { name: 'WHAT YOU GOT?', icon: '🎒', color: 'bg-gold', friend: 'Kris/Sunny' },
-  { name: 'WHAT YOU BUILT OF?', icon: '📖', color: 'bg-green', friend: 'Ej/Neptune' },
-  { name: 'WHAT YA SHARE?', icon: '📤', color: 'bg-sky-blue', friend: 'Zero' },
-  { name: 'WHAT YA MAKE?', icon: '🛠️', color: 'bg-orange', friend: 'Armando' },
-]
+  const tabs = [
+    { name: 'WHO YOU ARE?', icon: '👤', color: 'bg-tab-purple', friend: 'Mark/Star/Dante' },
+    { name: 'WHAT YOU DO?', icon: '⚔️', color: 'bg-tab-blood', friend: 'Zefhyr' },
+    { name: 'WHAT YOU GOT?', icon: '🎒', color: 'bg-tab-gold', friend: 'Kris/Sunny' },
+    { name: 'WHAT YOU BUILT OF?', icon: '📖', color: 'bg-tab-green', friend: 'Ej/Neptune' },
+    { name: 'WHAT YA SHARE?', icon: '📤', color: 'bg-tab-sky', friend: 'Zero' },
+    { name: 'WHAT YA MAKE?', icon: '🛠️', color: 'bg-tab-orange', friend: 'Armando' },
+  ]
 
   // Get current race data for slider ranges
   const currentRace = raceData[character.race] || raceData.human
@@ -29,7 +29,7 @@ function App() {
 
   if (!character) {
     return (
-      <div className="min-h-screen bg-dark-purple-950 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-friend-gradient flex items-center justify-center p-4">
         <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-8 max-w-md w-full text-center shadow-xl">
           <h1 className="text-4xl font-bold mb-6 text-white">🎲 D&D Builder</h1>
           <p className="text-dark-purple-300 mb-8">Create your next legendary character</p>
@@ -65,11 +65,12 @@ function App() {
               <button
                 key={tab.name}
                 onClick={() => setActiveTab(index)}
-                className={`py-3 px-2 rounded-lg font-semibold transition-all duration-200 text-xs md:text-sm ${
+                className={`py-3 px-2 rounded-lg font-semibold transition-all duration-200 text-xs md:text-sm border-2 ${
                   activeTab === index
-                    ? 'bg-dark-purple-600 text-white font-bold shadow-lg'
-                    : 'bg-dark-purple-900/50 text-dark-purple-300 hover:bg-dark-purple-800 hover:text-white'
+                    ? `${tab.color} text-white font-bold shadow-lg border-white/30`
+                    : 'bg-dark-purple-900/50 text-dark-purple-300 hover:bg-dark-purple-800 hover:text-white border-dark-purple-700'
                 }`}
+                title={tab.friend}
               >
                 <span className="block text-lg mb-1">{tab.icon}</span>
                 <span className="hidden md:inline">{tab.name}</span>
@@ -206,7 +207,7 @@ function App() {
             {/* Appearance Dropdowns */}
             <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl">
               <h3 className="text-xl font-bold mb-4 text-dark-purple-300">Appearance Details</h3>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2 text-dark-purple-300">Eye Color</label>
                   <select
@@ -260,6 +261,28 @@ function App() {
                     {appearanceOptions.skinTones.map(tone => (
                       <option key={tone} value={tone}>{tone}</option>
                     ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-dark-purple-300">Favorite Color</label>
+                  <select
+                    value={character.favoriteColor || ''}
+                    onChange={(e) => updateCharacter('favoriteColor', e.target.value)}
+                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all"
+                  >
+                    <option value="">Select...</option>
+                    <option value="teal">Teal (Andromeda)</option>
+                    <option value="orange">Orange (Armando)</option>
+                    <option value="vantablack">Vantablack (Clyde)</option>
+                    <option value="periwinkle">Periwinkle (Comet)</option>
+                    <option value="purple">Purple (Mark/Star/Dante)</option>
+                    <option value="green">Green (Ej/Neptune)</option>
+                    <option value="yellow">Yellow (Gubby)</option>
+                    <option value="gold">Gold (Kris/Sunny)</option>
+                    <option value="sky-blue">Sky Blue (Zero)</option>
+                    <option value="galaxy-blue">Galaxy Blue (Zero)</option>
+                    <option value="blood-red">Blood Red (Zefhyr)</option>
                   </select>
                 </div>
               </div>

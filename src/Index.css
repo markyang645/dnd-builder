@@ -2,8 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #3b0764;
-  color: white;
-  font-family: system-ui, sans-serif;
+@layer base {
+  body {
+    background-color: #3b0764;
+    color: white;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-dark-purple-600 hover:bg-dark-purple-500 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg;
+  }
+  
+  .btn-secondary {
+    @apply bg-dark-purple-800 hover:bg-dark-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 border border-dark-purple-600;
+  }
+  
+  .card {
+    @apply bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl;
+  }
+  
+  .input-field {
+    @apply w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all;
+  }
+}
+
+@layer utilities {
+  /* Friend Color Gradients */
+  .bg-friend-gradient {
+    background: linear-gradient(135deg, 
+      #3b0764 0%, 
+      #9333ea 25%, 
+      #4b6cb7 50%, 
+      #22c55e 75%, 
+      #ffd700 100%
+    );
+  }
+  
+  .bg-tab-purple {
+    background: linear-gradient(135deg, #9333ea, #c084fc);
+  }
+  
+  .bg-tab-blood {
+    background: linear-gradient(135deg, #8b0000, #c41e1e);
+  }
+  
+  .bg-tab-gold {
+    background: linear-gradient(135deg, #ffd700, #ffed4a);
+  }
+  
+  .bg-tab-green {
+    background: linear-gradient(135deg, #22c55e, #4ade80);
+  }
+  
+  .bg-tab-sky {
+    background: linear-gradient(135deg, #87ceeb, #b8e4f5);
+  }
+  
+  .bg-tab-orange {
+    background: linear-gradient(135deg, #ff8c00, #ffb84d);
+  }
+}
+
+/* Smooth color transitions */
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 200ms;
+  transition-timing-function: ease-in-out;
 }

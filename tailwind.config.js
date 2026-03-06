@@ -20,7 +20,7 @@ export default {
           900: '#581c87',
           950: '#3b0764',
         },
-        // Friend Group Colors
+        // Friend Group Favorite Colors
         'teal': {
           DEFAULT: '#008080',
           light: '#4db8b8',
