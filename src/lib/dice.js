@@ -1,7 +1,9 @@
 // D&D Dice Rolling Utilities
 
+// Roll a single die (e.g., rollDie(6) = 1-6)
 export const rollDie = (sides) => Math.floor(Math.random() * sides) + 1
 
+// Roll multiple dice and sum (e.g., rollDice(4, 6) = 4d6)
 export const rollDice = (count, sides) => {
   let total = 0
   const rolls = []
@@ -54,6 +56,7 @@ export const generateAbilityScores = () => {
   return results
 }
 
+// Roll d20 with modifier (for attacks, saves, checks)
 export const rollD20 = (modifier = 0, { advantage = false, disadvantage = false } = {}) => {
   let roll1 = rollDie(20)
   let roll2 = null
@@ -80,6 +83,7 @@ export const rollD20 = (modifier = 0, { advantage = false, disadvantage = false 
   }
 }
 
+// Roll damage (e.g., "1d8+3" for a longsword with +3 STR)
 export const rollDamage = (diceNotation, modifier = 0) => {
   const match = diceNotation.match(/^(\d*)d(\d+)([+-]\d+)?$/)
   if (!match) return { total: modifier, error: 'Invalid dice notation' }
@@ -95,8 +99,7 @@ export const rollDamage = (diceNotation, modifier = 0) => {
   return { total, diceTotal, modifier: extraMod + modifier, rolls, notation: diceNotation }
 }
 
-export const rollDie = (sides) => Math.floor(Math.random() * sides) + 1
-
+// Format roll result for display
 export const formatRoll = (roll) => {
   if (roll.natural20) return `🎲 NATURAL 20!`
   if (roll.natural1) return `🎲 NATURAL 1!`
