@@ -1,28 +1,17 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@'
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>D&D Character Builder</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+'@ | Set-Content -Path "index.html" -Encoding UTF8
 
-@layer base {
-  body {
-    @apply bg-dark-purple-950 text-white;
-    font-family: system-ui, -apple-system, sans-serif;
-  }
-}
-
-@layer components {
-  .btn-primary {
-    @apply bg-dark-purple-600 hover:bg-dark-purple-500 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg;
-  }
-  
-  .btn-secondary {
-    @apply bg-dark-purple-800 hover:bg-dark-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 border border-dark-purple-600;
-  }
-  
-  .card {
-    @apply bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl;
-  }
-  
-  .input-field {
-    @apply w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all;
-  }
-}
+Write-Host "✅ index.html fixed!" -ForegroundColor Green
