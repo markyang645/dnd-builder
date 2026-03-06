@@ -25,6 +25,7 @@ function App() {
     clearRollHistory,
     validationErrors,
     clearValidationErrors,
+    rollBreakdowns,
   } = useCharacterStore()
 
   const mainTabs = [
@@ -46,8 +47,11 @@ function App() {
   const ageValue = character?.age || currentRace.ageRange.min
   const heightValue = character?.height || currentRace.heightRange.min
   const weightValue = character?.weight || currentRace.weightRange.min
+  
+  // Calculate point buy cost LIVE
   const pointBuyCost = character ? getPointBuyCost(character.abilities) : 0
   const pointBuyValid = character ? validatePointBuy(character.abilities) : true
+  const pointBuyPercent = Math.min(100, (pointBuyCost / pointBuyTotal) * 100)
 
   const handleRoll = (rollFn, label) => {
     const result = rollFn()
@@ -61,12 +65,7 @@ function App() {
         <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-8 max-w-md w-full text-center shadow-xl">
           <h1 className="text-4xl font-bold mb-6 text-white">🎲 D&D Builder</h1>
           <p className="text-dark-purple-300 mb-8">Create your next legendary character</p>
-          <button
-            onClick={() => createCharacter('New Character', 'pointbuy')}
-            className="w-full bg-dark-purple-600 hover:bg-dark-purple-500 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 shadow-lg text-lg mb-4"
-          >
-            + Create New Character
-          </button>
+          <button onClick={() => createCharacter('New Character', 'pointbuy')} className="w-full bg-dark-purple-600 hover:bg-dark-purple-500 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 shadow-lg text-lg mb-4">+ Create New Character</button>
         </div>
       </div>
     )
@@ -77,9 +76,7 @@ function App() {
       {/* Sidebar */}
       <aside className={`fixed left-0 top-0 h-full bg-dark-purple-900/90 backdrop-blur-sm border-r border-dark-purple-700 z-40 transition-all duration-300 ${sidebarOpen ? 'w-72' : 'w-0'} overflow-hidden`}>
         <div className="p-4 h-full overflow-y-auto">
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="absolute -right-3 top-4 bg-dark-purple-700 hover:bg-dark-purple-600 text-white rounded-full p-1 border border-dark-purple-500">
-            {sidebarOpen ? '◀' : '▶'}
-          </button>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="absolute -right-3 top-4 bg-dark-purple-700 hover:bg-dark-purple-600 text-white rounded-full p-1 border border-dark-purple-500">{sidebarOpen ? '◀' : '▶'}</button>
           <div className="mb-4 pb-4 border-b border-dark-purple-700">
             <h2 className="text-lg font-bold text-white">{character.name}</h2>
             <p className="text-xs text-dark-purple-300">Lv.{character.level}</p>
@@ -137,9 +134,7 @@ function App() {
         <header className="bg-dark-purple-900 border-b border-dark-purple-700 sticky top-0 z-30">
           <div className="max-w-5xl mx-auto px-4 py-3">
             <div className="flex items-center justify-between mb-3">
-              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-dark-purple-800 hover:bg-dark-purple-700 text-white font-semibold py-1.5 px-3 rounded-lg transition-all border border-dark-purple-600 text-sm">
-                {sidebarOpen ? '◀ Hide' : '▶ Show'}
-              </button>
+              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-dark-purple-800 hover:bg-dark-purple-700 text-white font-semibold py-1.5 px-3 rounded-lg transition-all border border-dark-purple-600 text-sm">{sidebarOpen ? '◀ Hide' : '▶ Show'}</button>
               <button onClick={() => createCharacter('New Character', 'pointbuy')} className="bg-dark-purple-800 hover:bg-dark-purple-700 text-white font-semibold py-1.5 px-3 rounded-lg transition-all border border-dark-purple-600 text-sm">+ New</button>
             </div>
 
@@ -163,15 +158,7 @@ function App() {
             {/* Main Tab Navigation */}
             <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5">
               {mainTabs.map((tab, index) => (
-                <button
-                  key={tab.name}
-                  onClick={() => setActiveTab(index)}
-                  className={`py-2 px-1 rounded-lg font-semibold transition-all text-[10px] md:text-xs border ${
-                    activeTab === index
-                      ? `${tab.color} text-white font-bold shadow-lg border-white/30`
-                      : 'bg-dark-purple-900/50 text-dark-purple-300 hover:bg-dark-purple-800 hover:text-white border-dark-purple-700'
-                  }`}
-                >
+                <button key={tab.name} onClick={() => setActiveTab(index)} className={`py-2 px-1 rounded-lg font-semibold transition-all text-[10px] md:text-xs border ${activeTab === index ? `${tab.color} text-white font-bold shadow-lg border-white/30` : 'bg-dark-purple-900/50 text-dark-purple-300 hover:bg-dark-purple-800 hover:text-white border-dark-purple-700'}`}>
                   <span className="block text-base mb-0.5">{tab.icon}</span>
                   <span className="hidden md:inline">{tab.name}</span>
                 </button>
@@ -224,24 +211,9 @@ function App() {
               <h2 className="text-2xl font-bold text-dark-purple-300">What You Do?</h2>
               <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-4">
                 <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium mb-1.5 text-dark-purple-300">Class</label>
-                    <select value={character.class} onChange={(e) => updateCharacter('class', e.target.value)} className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-dark-purple-500 transition-all">
-                      <option value="">Select Class...</option>
-                      {['barbarian','bard','cleric','druid','fighter','monk','paladin','ranger','rogue','sorcerer','warlock','wizard'].map(c => (<option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-1.5 text-dark-purple-300">Level</label>
-                    <input type="number" min="1" max="20" value={character.level} onChange={(e) => updateCharacter('level', parseInt(e.target.value) || 1)} className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-dark-purple-500 transition-all" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-1.5 text-dark-purple-300">Background</label>
-                    <select value={character.background} onChange={(e) => updateCharacter('background', e.target.value)} className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-dark-purple-500 transition-all">
-                      <option value="">Select Background...</option>
-                      {['acolyte','charlatan','criminal','entertainer','folk-hero','guild-artisan','hermit','noble','outlander','sage','sailor','soldier','urchin'].map(b => (<option key={b} value={b}>{b.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>))}
-                    </select>
-                  </div>
+                  <div><label className="block text-xs font-medium mb-1.5 text-dark-purple-300">Class</label><select value={character.class} onChange={(e) => updateCharacter('class', e.target.value)} className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-dark-purple-500 transition-all"><option value="">Select Class...</option>{['barbarian','bard','cleric','druid','fighter','monk','paladin','ranger','rogue','sorcerer','warlock','wizard'].map(c => (<option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>))}</select></div>
+                  <div><label className="block text-xs font-medium mb-1.5 text-dark-purple-300">Level</label><input type="number" min="1" max="20" value={character.level} onChange={(e) => updateCharacter('level', parseInt(e.target.value) || 1)} className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-dark-purple-500 transition-all" /></div>
+                  <div><label className="block text-xs font-medium mb-1.5 text-dark-purple-300">Background</label><select value={character.background} onChange={(e) => updateCharacter('background', e.target.value)} className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-dark-purple-500 transition-all"><option value="">Select Background...</option>{['acolyte','charlatan','criminal','entertainer','folk-hero','guild-artisan','hermit','noble','outlander','sage','sailor','soldier','urchin'].map(b => (<option key={b} value={b}>{b.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>))}</select></div>
                 </div>
               </div>
             </div>
@@ -265,30 +237,59 @@ function App() {
                 </div>
               )}
 
-              {/* Point Buy */}
+              {/* Point Buy - WITH PROGRESS BAR */}
               {character.activeStatTab === 'pointbuy' && (
                 <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-dark-purple-300">💰 Point Buy</h3>
-                  <div className={`p-3 rounded-lg mb-4 ${pointBuyValid ? 'bg-green-900/50 border border-green-700' : 'bg-red-900/50 border border-red-700'}`}>
-                    <div className="flex justify-between items-center">
-                      <span className="text-white font-semibold">Points: {pointBuyCost} / {pointBuyTotal}</span>
-                      <span className={pointBuyValid ? 'text-green-400' : 'text-red-400'}>{pointBuyValid ? '✅' : '❌'}</span>
+                  <div className={`p-4 rounded-lg mb-4 ${pointBuyValid ? 'bg-green-900/50 border border-green-700' : 'bg-red-900/50 border border-red-700'}`}>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-white font-bold text-lg">Points Spent: {pointBuyCost} / {pointBuyTotal}</span>
+                      <span className={`text-lg font-bold ${pointBuyValid ? 'text-green-400' : 'text-red-400'}`}>{pointBuyValid ? '✅ Valid' : '❌ Over Budget'}</span>
                     </div>
-                    <div className="w-full bg-dark-purple-950 rounded-full h-2 mt-2">
-                      <div className={`h-2 rounded-full transition-all ${pointBuyValid ? 'bg-green-500' : 'bg-red-500'}`} style={{ width: `${Math.min(100, (pointBuyCost / pointBuyTotal) * 100)}%` }}></div>
+                    {/* PROGRESS BAR */}
+                    <div className="w-full bg-dark-purple-950 rounded-full h-4 border border-dark-purple-700">
+                      <div 
+                        className={`h-4 rounded-full transition-all duration-300 ${pointBuyValid ? 'bg-gradient-to-r from-green-600 to-green-400' : 'bg-gradient-to-r from-red-600 to-red-400'}`} 
+                        style={{ width: `${pointBuyPercent}%` }}
+                      ></div>
                     </div>
+                    <p className="text-xs text-dark-purple-400 mt-2 text-center">{pointBuyPercent.toFixed(0)}% of budget used</p>
                   </div>
-                  <p className="text-xs text-dark-purple-400">Cost: 8=0, 9=1, 10=2, 11=3, 12=4, 13=5, 14=7, 15=9</p>
+                  <div className="grid grid-cols-4 md:grid-cols-8 gap-2 text-center text-xs">
+                    {Object.entries(pointBuyCosts).map(([score, cost]) => (
+                      <div key={score} className={`bg-dark-purple-950 p-2 rounded border ${parseInt(score) === 14 || parseInt(score) === 15 ? 'border-yellow-600' : 'border-dark-purple-700'}`}>
+                        <div className="text-dark-purple-400">Score {score}</div>
+                        <div className="text-white font-bold">{cost} pts</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {/* Roll Stats */}
+              {/* Roll Stats - WITH BREAKDOWNS */}
               {character.activeStatTab === 'roll' && (
-                <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-4 text-center">
+                <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-dark-purple-300">🎲 Roll Stats (4d6 drop lowest)</h3>
-                  <button onClick={() => handleRoll(rollAbilityScores, 'Ability Scores')} className="bg-dark-purple-600 hover:bg-dark-purple-500 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg">
-                    Roll New Stats
+                  <p className="text-dark-purple-400 text-sm mb-4">Roll 4 six-sided dice, drop the lowest, sum the remaining 3.</p>
+                  <button onClick={() => handleRoll(rollAbilityScores, 'Ability Scores')} className="bg-dark-purple-600 hover:bg-dark-purple-500 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg mb-4">
+                    🎲 Roll New Stats
                   </button>
+                  
+                  {/* SHOW INDIVIDUAL ROLL BREAKDOWNS */}
+                  {rollBreakdowns && Object.keys(rollBreakdowns).length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-bold text-dark-purple-300">Roll Breakdown:</h4>
+                      {Object.entries(rollBreakdowns).map(([ability, breakdown]) => (
+                        <div key={ability} className="bg-dark-purple-950 p-3 rounded-lg border border-dark-purple-700">
+                          <div className="flex justify-between items-center">
+                            <span className="text-white font-bold uppercase text-sm">{abilityLabels[ability] || ability}</span>
+                            <span className="text-xl font-bold text-dark-purple-300">{character.abilities[ability]}</span>
+                          </div>
+                          <div className="text-xs text-dark-purple-400 mt-1 font-mono">{breakdown}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -301,13 +302,18 @@ function App() {
                       <label className="block text-xs font-medium mb-1 uppercase text-dark-purple-400">{abilityLabels[ability] || ability}</label>
                       <input 
                         type="number" 
-                        min="1" 
-                        max="20" 
+                        min={character.activeStatTab === 'pointbuy' ? pointBuyMin : 1} 
+                        max={character.activeStatTab === 'pointbuy' ? pointBuyMax : 20} 
                         value={score} 
                         onChange={(e) => updateAbility(ability, e.target.value)} 
                         className="w-full bg-dark-purple-900 border-2 border-dark-purple-700 rounded-lg px-3 py-2 text-white text-center text-xl font-bold mb-1 focus:outline-none focus:border-dark-purple-500 transition-all" 
                       />
                       <div className="text-center text-sm font-bold text-dark-purple-300">Mod: {(score - 10) >= 0 ? '+' : ''}{Math.floor((score - 10) / 2)}</div>
+                      {character.activeStatTab === 'roll' && rollBreakdowns[ability] && (
+                        <div className="text-[10px] text-dark-purple-400 mt-1 font-mono truncate" title={rollBreakdowns[ability]}>
+                          {rollBreakdowns[ability]}
+                        </div>
+                      )}
                       <button onClick={() => handleRoll(() => rollSavingThrow(ability), `${abilityLabels[ability]} Save`)} className="mt-2 w-full bg-dark-purple-800 hover:bg-dark-purple-700 text-white text-xs py-1.5 px-3 rounded transition-all">Roll Save</button>
                     </div>
                   ))}

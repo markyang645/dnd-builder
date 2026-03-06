@@ -8,9 +8,9 @@ import {
   asiLevels, classPrimaryAbility, standardArray, getPointBuyCost,
 } from '../data/dndRules'
 import {
-  roll4d6DropLowest, rollD20, rollDamage, rollInitiative,
+  rollD20, rollDamage, rollInitiative,
   rollSkillCheck, rollSavingThrow, rollAttack, rollDeathSave,
-  rollDie, generateAbilityScores, formatRoll,
+  generateAbilityScores, formatRoll, rollDie,
 } from '../lib/dice'
 
 const genId = () => Math.random().toString(36).slice(2)
@@ -22,26 +22,30 @@ export const useCharacterStore = create(
       characters: [],
       rollHistory: [],
       validationErrors: [],
-      activeStatTab: 'pointbuy', // 'standard' | 'pointbuy' | 'roll'
+      activeStatTab: 'pointbuy',
+      rollBreakdowns: {}, // Store individual roll breakdowns per ability
 
       createCharacter: (name, statMethod = 'pointbuy') =>
         set((state) => {
           let abilities = { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }
           let rollResults = []
-          let validationErrors = []
+          let rollBreakdowns = {}
           
           if (statMethod === 'standard') {
             abilities = { str: 15, dex: 14, con: 13, int: 12, wis: 10, cha: 8 }
           } else if (statMethod === 'roll') {
             const scores = generateAbilityScores()
-            abilities = { str: scores[0], dex: scores[1], con: scores[2], int: scores[3], wis: scores[4], cha: scores[5] }
-            rollResults = scores.map((score, i) => ({
-              ability: ['str','dex','con','int','wis','cha'][i],
-              result: `4d6 drop lowest = ${score}`,
+            abilities = {}
+            scores.forEach(result => {
+              abilities[result.ability] = result.score
+              rollBreakdowns[result.ability] = result.breakdown
+            })
+            rollResults = scores.map(r => ({
+              ability: r.ability,
+              result: r.breakdown,
               timestamp: Date.now(),
             }))
           }
-          // pointbuy starts at 10s (user allocates)
 
           const newCharacter = {
             id: genId(), name: name || 'New Character',
@@ -71,7 +75,8 @@ export const useCharacterStore = create(
             character: calculated,
             characters: [...state.characters, calculated],
             rollHistory: rollResults.length ? [...state.rollHistory, ...rollResults] : state.rollHistory,
-            validationErrors,
+            rollBreakdowns,
+            validationErrors: [],
             activeStatTab: statMethod,
           }
         }),
@@ -80,24 +85,29 @@ export const useCharacterStore = create(
         if (!state.character) return state
         let abilities = { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }
         let rollResults = []
+        let rollBreakdowns = {}
         
         if (tab === 'standard') {
           abilities = { str: 15, dex: 14, con: 13, int: 12, wis: 10, cha: 8 }
         } else if (tab === 'roll') {
           const scores = generateAbilityScores()
-          abilities = { str: scores[0], dex: scores[1], con: scores[2], int: scores[3], wis: scores[4], cha: scores[5] }
-          rollResults = scores.map((score, i) => ({
-            ability: ['str','dex','con','int','wis','cha'][i],
-            result: `4d6 drop lowest = ${score}`,
+          abilities = {}
+          scores.forEach(result => {
+            abilities[result.ability] = result.score
+            rollBreakdowns[result.ability] = result.breakdown
+          })
+          rollResults = scores.map(r => ({
+            ability: r.ability,
+            result: r.breakdown,
             timestamp: Date.now(),
           }))
         }
-        // pointbuy keeps 10s
         
         const updated = { ...state.character, abilities, statMethod: tab }
         return {
           character: get().calculateDerivedStats(updated),
           activeStatTab: tab,
+          rollBreakdowns: tab === 'roll' ? rollBreakdowns : {},
           rollHistory: rollResults.length ? [...(state.rollHistory || []), ...rollResults] : state.rollHistory,
         }
       }),
@@ -118,39 +128,23 @@ export const useCharacterStore = create(
           const numValue = parseInt(value) || 10
           let validationErrors = []
           
-          // Universal limits
-          if (numValue < ABILITY_MIN) {
-            validationErrors.push(`${ability.toUpperCase()} cannot be below ${ABILITY_MIN}`)
-          }
-          if (numValue > ABILITY_MAX) {
-            validationErrors.push(`${ability.toUpperCase()} cannot exceed ${ABILITY_MAX}`)
-          }
+          if (numValue < ABILITY_MIN) validationErrors.push(`${ability.toUpperCase()} cannot be below ${ABILITY_MIN}`)
+          if (numValue > ABILITY_MAX) validationErrors.push(`${ability.toUpperCase()} cannot exceed ${ABILITY_MAX}`)
           
-          // Point buy specific limits
           if (state.character.statMethod === 'pointbuy') {
-            if (numValue < pointBuyMin) {
-              validationErrors.push(`${ability.toUpperCase()} minimum for Point Buy is ${pointBuyMin}`)
-            }
-            if (numValue > pointBuyMax) {
-              validationErrors.push(`${ability.toUpperCase()} maximum for Point Buy is ${pointBuyMax}`)
-            }
+            if (numValue < pointBuyMin) validationErrors.push(`${ability.toUpperCase()} minimum for Point Buy is ${pointBuyMin}`)
+            if (numValue > pointBuyMax) validationErrors.push(`${ability.toUpperCase()} maximum for Point Buy is ${pointBuyMax}`)
           }
           
           const clampedValue = Math.max(
             state.character.statMethod === 'pointbuy' ? pointBuyMin : ABILITY_MIN,
-            Math.min(
-              state.character.statMethod === 'pointbuy' ? pointBuyMax : ABILITY_MAX,
-              numValue
-            )
+            Math.min(state.character.statMethod === 'pointbuy' ? pointBuyMax : ABILITY_MAX, numValue)
           )
           
-          // Validate point buy budget
           if (state.character.statMethod === 'pointbuy') {
             const testAbilities = { ...state.character.abilities, [ability]: clampedValue }
             const cost = getPointBuyCost(testAbilities)
-            if (cost > pointBuyTotal) {
-              validationErrors.push(`Point Buy cost (${cost}) exceeds maximum (${pointBuyTotal})`)
-            }
+            if (cost > pointBuyTotal) validationErrors.push(`Point Buy cost (${cost}) exceeds maximum (${pointBuyTotal})`)
           }
           
           const updated = {
@@ -159,10 +153,7 @@ export const useCharacterStore = create(
             updatedAt: Date.now(),
           }
           
-          return { 
-            character: get().calculateDerivedStats(updated),
-            validationErrors,
-          }
+          return { character: get().calculateDerivedStats(updated), validationErrors }
         }),
 
       calculateDerivedStats: (char) => {
@@ -197,10 +188,7 @@ export const useCharacterStore = create(
           const level1HP = hitDie + conMod
           hitPoints = level1HP
           maxHitPoints = level1HP
-          hpHistory = [{
-            level: 1, roll: `Max (${hitDie}) + ${conMod >= 0 ? '+' : ''}${conMod} CON`,
-            gain: level1HP, total: level1HP, timestamp: Date.now(),
-          }]
+          hpHistory = [{ level: 1, roll: `Max (${hitDie}) + ${conMod >= 0 ? '+' : ''}${conMod} CON`, gain: level1HP, total: level1HP, timestamp: Date.now() }]
         }
         
         const dexMod = modifiers.dex || 0
@@ -214,27 +202,25 @@ export const useCharacterStore = create(
         const asiCount = asiLevels.filter(l => l <= (char.level || 1)).length
         const asiAvailable = asiCount - (char.asiUsed || 0)
         
-        return {
-          ...char, modifiers, savingThrows, proficiencyBonus: profBonus,
-          hitPoints, maxHitPoints, hpHistory, armorClass: ac, speed, initiative,
-          spellSaveDC, attackBonus, carryingCapacity, pushDragLift, asiAvailable,
-        }
+        return { ...char, modifiers, savingThrows, proficiencyBonus: profBonus, hitPoints, maxHitPoints, hpHistory, armorClass: ac, speed, initiative, spellSaveDC, attackBonus, carryingCapacity, pushDragLift, asiAvailable }
       },
 
       rollAbilityScores: () =>
         set((state) => {
           if (!state.character) return state
           const scores = generateAbilityScores()
-          const abilities = { str: scores[0], dex: scores[1], con: scores[2], int: scores[3], wis: scores[4], cha: scores[5] }
-          const rollResults = scores.map((score, i) => ({
-            ability: ['str','dex','con','int','wis','cha'][i],
-            result: `4d6 drop lowest = ${score}`,
-            timestamp: Date.now(),
-          }))
+          const abilities = {}
+          const rollBreakdowns = {}
+          scores.forEach(result => {
+            abilities[result.ability] = result.score
+            rollBreakdowns[result.ability] = result.breakdown
+          })
+          const rollResults = scores.map(r => ({ ability: r.ability, result: r.breakdown, timestamp: Date.now() }))
           const updated = { ...state.character, abilities, statMethod: 'roll' }
           return {
             character: get().calculateDerivedStats(updated),
             activeStatTab: 'roll',
+            rollBreakdowns,
             rollHistory: [...(state.rollHistory || []), ...rollResults],
           }
         }),
@@ -282,10 +268,7 @@ export const useCharacterStore = create(
         const rollEntry = { type: 'level-up-hp', level: newLevel, hitDie: `1d${hitDie}`, conMod, result: `${hpGain} HP gained (${rollResult})`, timestamp: Date.now() }
         const hpHistory = state.character.hpHistory || []
         const newHpHistory = [...hpHistory, { level: newLevel, roll: rollResult, gain: hpGain, total: (state.character.maxHitPoints || 0) + hpGain, timestamp: Date.now() }]
-        set((prev) => ({ 
-          rollHistory: [...(prev.rollHistory || []), rollEntry],
-          character: prev.character ? { ...prev.character, level: newLevel, hitPoints: (prev.character.maxHitPoints || 0) + hpGain, maxHitPoints: (prev.character.maxHitPoints || 0) + hpGain, hpHistory: newHpHistory } : null,
-        }))
+        set((prev) => ({ rollHistory: [...(prev.rollHistory || []), rollEntry], character: prev.character ? { ...prev.character, level: newLevel, hitPoints: (prev.character.maxHitPoints || 0) + hpGain, maxHitPoints: (prev.character.maxHitPoints || 0) + hpGain, hpHistory: newHpHistory } : null }))
         return { level: newLevel, gain: hpGain, result: rollResult }
       },
 
@@ -293,17 +276,8 @@ export const useCharacterStore = create(
       getPointBuyCost: (abilities) => getPointBuyCost(abilities),
       loadCharacter: (id) => set((state) => ({ character: state.characters.find((c) => c.id === id) || null })),
       deleteCharacter: (id) => set((state) => ({ characters: state.characters.filter((c) => c.id !== id), character: state.character?.id === id ? null : state.character })),
-      addSkillProficiency: (skill) => set((state) => {
-        if (!state.character) return state
-        if (state.character.skillProficiencies.includes(skill)) return state
-        const updated = { ...state.character, skillProficiencies: [...state.character.skillProficiencies, skill] }
-        return { character: get().calculateDerivedStats(updated) }
-      }),
-      setArmor: (armorType, hasShield = false) => set((state) => {
-        if (!state.character) return state
-        const updated = { ...state.character, armorType, hasShield }
-        return { character: get().calculateDerivedStats(updated) }
-      }),
+      addSkillProficiency: (skill) => set((state) => { if (!state.character) return state; if (state.character.skillProficiencies.includes(skill)) return state; const updated = { ...state.character, skillProficiencies: [...state.character.skillProficiencies, skill] }; return { character: get().calculateDerivedStats(updated) } }),
+      setArmor: (armorType, hasShield = false) => set((state) => { if (!state.character) return state; const updated = { ...state.character, armorType, hasShield }; return { character: get().calculateDerivedStats(updated) } }),
       clearRollHistory: () => set({ rollHistory: [] }),
       clearValidationErrors: () => set({ validationErrors: [] }),
     }),
