@@ -12,14 +12,14 @@ function App() {
   const [activeTab, setActiveTab] = useState(0)
   const { character, createCharacter, updateCharacter, updateAbility } = useCharacterStore()
 
-  const tabs = [
-    { name: 'WHO YOU ARE?', icon: '👤' },
-    { name: 'WHAT YOU DO?', icon: '⚔️' },
-    { name: 'WHAT YOU GOT?', icon: '🎒' },
-    { name: 'WHAT YOU BUILT OF?', icon: '📖' },
-    { name: 'WHAT YA SHARE?', icon: '📤' },
-    { name: 'WHAT YA MAKE?', icon: '🛠️' },
-  ]
+ const tabs = [
+  { name: 'WHO YOU ARE?', icon: '👤', color: 'bg-purple-600', friend: 'Mark/Star/Dante' },
+  { name: 'WHAT YOU DO?', icon: '⚔️', color: 'bg-blood-red', friend: 'Zefhyr' },
+  { name: 'WHAT YOU GOT?', icon: '🎒', color: 'bg-gold', friend: 'Kris/Sunny' },
+  { name: 'WHAT YOU BUILT OF?', icon: '📖', color: 'bg-green', friend: 'Ej/Neptune' },
+  { name: 'WHAT YA SHARE?', icon: '📤', color: 'bg-sky-blue', friend: 'Zero' },
+  { name: 'WHAT YA MAKE?', icon: '🛠️', color: 'bg-orange', friend: 'Armando' },
+]
 
   // Get current race data for slider ranges
   const currentRace = raceData[character.race] || raceData.human
