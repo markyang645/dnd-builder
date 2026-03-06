@@ -15,7 +15,7 @@ import {
   isValidPointBuy,
   pointBuyCosts,
   pointBuyTotal,
-} from './data/dndRules'
+} from '../data/dndRules'
 
 const genId = () => Math.random().toString(36).slice(2)
 
