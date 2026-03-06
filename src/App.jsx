@@ -1,17 +1,15 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useCharacterStore } from './state/store'
 import { raceData, appearanceOptions, inchesToFeetInches } from './data/raceData'
-import { 
-  abilityLabels, 
-  skills, 
-  backgroundSkills, 
-  classSavingThrows,
-  getModifier,
-} from './data/dndRules'
+import { abilityLabels, skills, backgroundSkills, classSavingThrows, classHitDice } from './data/dndRules'
+import { formatRoll } from './lib/dice'
 
 function App() {
   const [activeTab, setActiveTab] = useState(0)
   const [showStatOptions, setShowStatOptions] = useState(false)
+  const [showRollHistory, setShowRollHistory] = useState(false)
+  const [lastRoll, setLastRoll] = useState(null)
+  
   const { 
     character, 
     createCharacter, 
@@ -20,7 +18,16 @@ function App() {
     setStatMethod,
     getPointBuyCost,
     validatePointBuy,
-    calculateDerivedStats,
+    rollAbilityScores,
+    rollInitiative,
+    rollSkillCheck,
+    rollSavingThrow,
+    rollAttack,
+    rollDamage,
+    rollDeathSave,
+    rollLevelUpHP,
+    rollHistory,
+    clearRollHistory,
   } = useCharacterStore()
 
   const tabs = [
@@ -32,15 +39,19 @@ function App() {
     { name: 'WHAT YA MAKE?', icon: '🛠️', color: 'bg-tab-orange', friend: 'Armando' },
   ]
 
-  // Get current race data for slider ranges
   const currentRace = raceData[character?.race] || raceData.human
   const ageValue = character?.age || currentRace.ageRange.min
   const heightValue = character?.height || currentRace.heightRange.min
   const weightValue = character?.weight || currentRace.weightRange.min
 
-  // Calculate point buy cost
   const pointBuyCost = character ? getPointBuyCost(character.abilities) : 0
   const pointBuyValid = character ? validatePointBuy(character.abilities) : true
+
+  // Handle roll and display result
+  const handleRoll = (rollFn, label) => {
+    const result = rollFn()
+    setLastRoll({ label, result, timestamp: Date.now() })
+  }
 
   if (!character) {
     return (
@@ -75,6 +86,13 @@ function App() {
               </p>
             </div>
             <div className="flex gap-2">
+              <button
+                onClick={() => setShowRollHistory(!showRollHistory)}
+                className="bg-dark-purple-800 hover:bg-dark-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 border border-dark-purple-600"
+                title="View Roll History"
+              >
+                📜 {rollHistory?.length || 0}
+              </button>
               <button
                 onClick={() => setShowStatOptions(!showStatOptions)}
                 className="bg-dark-purple-800 hover:bg-dark-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 border border-dark-purple-600"
@@ -129,6 +147,57 @@ function App() {
                   <div className="text-sm opacity-80">Drop lowest die</div>
                 </button>
               </div>
+              <button
+                onClick={() => handleRoll(rollAbilityScores, 'Ability Scores')}
+                className="mt-4 w-full bg-dark-purple-600 hover:bg-dark-purple-500 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200"
+              >
+                🎲 Roll New Ability Scores (4d6 drop lowest)
+              </button>
+            </div>
+          )}
+
+          {/* Roll History Panel */}
+          {showRollHistory && (
+            <div className="bg-dark-purple-950 border border-dark-purple-700 rounded-lg p-4 mb-4 max-h-64 overflow-y-auto">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-bold text-white">📜 Roll History</h3>
+                <button
+                  onClick={clearRollHistory}
+                  className="text-dark-purple-400 hover:text-white text-sm"
+                >
+                  Clear All
+                </button>
+              </div>
+              {rollHistory?.length === 0 ? (
+                <p className="text-dark-purple-400 text-sm">No rolls yet. Start rolling!</p>
+              ) : (
+                <div className="space-y-2">
+                  {rollHistory.slice(-10).reverse().map((roll, i) => (
+                    <div key={i} className="bg-dark-purple-900 p-2 rounded text-sm text-white">
+                      <span className="text-dark-purple-400">[{new Date(roll.timestamp).toLocaleTimeString()}]</span>
+                      {' '}{roll.type}: {roll.result}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Last Roll Display */}
+          {lastRoll && (
+            <div className="bg-dark-purple-950 border border-dark-purple-700 rounded-lg p-4 mb-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <span className="text-dark-purple-400 text-sm">{lastRoll.label}</span>
+                  <div className="text-2xl font-bold text-white">{lastRoll.result?.total || lastRoll.result}</div>
+                </div>
+                <button
+                  onClick={() => setLastRoll(null)}
+                  className="text-dark-purple-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           )}
 
@@ -159,49 +228,44 @@ function App() {
         <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 mb-8 shadow-xl">
           <h2 className="text-2xl font-bold text-white mb-4">📊 Character Stats</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-            {/* HP */}
             <div className="bg-dark-purple-950 p-4 rounded-lg border border-dark-purple-700 text-center">
               <div className="text-dark-purple-400 text-sm">Hit Points</div>
               <div className="text-3xl font-bold text-white">{character.hitPoints || 0}</div>
+              <button
+                onClick={() => handleRoll(rollLevelUpHP, 'Level Up HP')}
+                className="text-xs text-dark-purple-400 hover:text-white mt-1"
+              >
+                + Roll HP
+              </button>
             </div>
-            
-            {/* AC */}
             <div className="bg-dark-purple-950 p-4 rounded-lg border border-dark-purple-700 text-center">
               <div className="text-dark-purple-400 text-sm">Armor Class</div>
               <div className="text-3xl font-bold text-white">{character.armorClass || 10}</div>
             </div>
-            
-            {/* Initiative */}
             <div className="bg-dark-purple-950 p-4 rounded-lg border border-dark-purple-700 text-center">
               <div className="text-dark-purple-400 text-sm">Initiative</div>
               <div className="text-3xl font-bold text-white">
                 {character.initiative >= 0 ? '+' : ''}{character.initiative || 0}
               </div>
+              <button
+                onClick={() => handleRoll(rollInitiative, 'Initiative')}
+                className="text-xs text-dark-purple-400 hover:text-white mt-1"
+              >
+                🎲 Roll
+              </button>
             </div>
-            
-            {/* Speed */}
             <div className="bg-dark-purple-950 p-4 rounded-lg border border-dark-purple-700 text-center">
               <div className="text-dark-purple-400 text-sm">Speed</div>
               <div className="text-3xl font-bold text-white">{character.speed || 30}ft</div>
             </div>
-            
-            {/* Proficiency Bonus */}
             <div className="bg-dark-purple-950 p-4 rounded-lg border border-dark-purple-700 text-center">
               <div className="text-dark-purple-400 text-sm">Proficiency</div>
-              <div className="text-3xl font-bold text-white">
-                +{character.proficiencyBonus || 2}
-              </div>
+              <div className="text-3xl font-bold text-white">+{character.proficiencyBonus || 2}</div>
             </div>
-            
-            {/* Passive Perception */}
             <div className="bg-dark-purple-950 p-4 rounded-lg border border-dark-purple-700 text-center">
               <div className="text-dark-purple-400 text-sm">Passive Perception</div>
-              <div className="text-3xl font-bold text-white">
-                {10 + (character.modifiers?.wis || 0)}
-              </div>
+              <div className="text-3xl font-bold text-white">{10 + (character.modifiers?.wis || 0)}</div>
             </div>
-            
-            {/* Level */}
             <div className="bg-dark-purple-950 p-4 rounded-lg border border-dark-purple-700 text-center">
               <div className="text-dark-purple-400 text-sm">Level</div>
               <div className="text-3xl font-bold text-white">{character.level || 1}</div>
@@ -213,9 +277,7 @@ function App() {
         {activeTab === 0 && (
           <div className="space-y-6">
             <h2 className="text-3xl font-bold text-dark-purple-300 mb-6">Who You Are?</h2>
-            
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Race & Identity */}
               <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl">
                 <h3 className="text-xl font-bold mb-4 text-dark-purple-300">Race & Identity</h3>
                 <div className="space-y-4">
@@ -224,7 +286,7 @@ function App() {
                     <select
                       value={character.race}
                       onChange={(e) => updateCharacter('race', e.target.value)}
-                      className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all"
+                      className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all"
                     >
                       <option value="">Select Race...</option>
                       {Object.entries(raceData).map(([key, data]) => (
@@ -232,13 +294,12 @@ function App() {
                       ))}
                     </select>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-2 text-dark-purple-300">Alignment</label>
                     <select
                       value={character.alignment}
                       onChange={(e) => updateCharacter('alignment', e.target.value)}
-                      className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all"
+                      className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all"
                     >
                       <option value="">Select Alignment...</option>
                       <option value="lawful-good">Lawful Good</option>
@@ -254,150 +315,75 @@ function App() {
                   </div>
                 </div>
               </div>
-
-              {/* Physical Description */}
               <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl">
                 <h3 className="text-xl font-bold mb-4 text-dark-purple-300">Physical Description</h3>
                 <div className="space-y-4">
-                  {/* Age Slider */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-dark-purple-300">
-                      Age: <span className="text-dark-purple-400">{ageValue} years</span>
-                    </label>
-                    <input
-                      type="range"
-                      min={currentRace.ageRange.min}
-                      max={currentRace.ageRange.max}
-                      value={ageValue}
+                    <label className="block text-sm font-medium mb-2 text-dark-purple-300">Age: <span className="text-dark-purple-400">{ageValue} years</span></label>
+                    <input type="range" min={currentRace.ageRange.min} max={currentRace.ageRange.max} value={ageValue}
                       onChange={(e) => updateCharacter('age', parseInt(e.target.value))}
-                      className="w-full h-2 bg-dark-purple-950 rounded-lg appearance-none cursor-pointer accent-dark-purple-500"
-                    />
-                    <div className="flex justify-between text-xs text-dark-purple-400 mt-1">
-                      <span>{currentRace.ageRange.min}</span>
-                      <span>{currentRace.ageRange.max}</span>
-                    </div>
+                      className="w-full h-2 bg-dark-purple-950 rounded-lg appearance-none cursor-pointer accent-dark-purple-500" />
                   </div>
-
-                  {/* Height Slider */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-dark-purple-300">
-                      Height: <span className="text-dark-purple-400">{inchesToFeetInches(heightValue)}</span>
-                    </label>
-                    <input
-                      type="range"
-                      min={currentRace.heightRange.min}
-                      max={currentRace.heightRange.max}
-                      value={heightValue}
+                    <label className="block text-sm font-medium mb-2 text-dark-purple-300">Height: <span className="text-dark-purple-400">{inchesToFeetInches(heightValue)}</span></label>
+                    <input type="range" min={currentRace.heightRange.min} max={currentRace.heightRange.max} value={heightValue}
                       onChange={(e) => updateCharacter('height', parseInt(e.target.value))}
-                      className="w-full h-2 bg-dark-purple-950 rounded-lg appearance-none cursor-pointer accent-dark-purple-500"
-                    />
-                    <div className="flex justify-between text-xs text-dark-purple-400 mt-1">
-                      <span>{inchesToFeetInches(currentRace.heightRange.min)}</span>
-                      <span>{inchesToFeetInches(currentRace.heightRange.max)}</span>
-                    </div>
+                      className="w-full h-2 bg-dark-purple-950 rounded-lg appearance-none cursor-pointer accent-dark-purple-500" />
                   </div>
-
-                  {/* Weight Slider */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-dark-purple-300">
-                      Weight: <span className="text-dark-purple-400">{weightValue} lbs</span>
-                    </label>
-                    <input
-                      type="range"
-                      min={currentRace.weightRange.min}
-                      max={currentRace.weightRange.max}
-                      value={weightValue}
+                    <label className="block text-sm font-medium mb-2 text-dark-purple-300">Weight: <span className="text-dark-purple-400">{weightValue} lbs</span></label>
+                    <input type="range" min={currentRace.weightRange.min} max={currentRace.weightRange.max} value={weightValue}
                       onChange={(e) => updateCharacter('weight', parseInt(e.target.value))}
-                      className="w-full h-2 bg-dark-purple-950 rounded-lg appearance-none cursor-pointer accent-dark-purple-500"
-                    />
-                    <div className="flex justify-between text-xs text-dark-purple-400 mt-1">
-                      <span>{currentRace.weightRange.min}</span>
-                      <span>{currentRace.weightRange.max}</span>
-                    </div>
+                      className="w-full h-2 bg-dark-purple-950 rounded-lg appearance-none cursor-pointer accent-dark-purple-500" />
                   </div>
-
-                  {/* Gender Input */}
                   <div>
                     <label className="block text-sm font-medium mb-2 text-dark-purple-300">Gender</label>
-                    <input
-                      type="text"
-                      value={character.gender || ''}
-                      onChange={(e) => updateCharacter('gender', e.target.value)}
-                      className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all"
-                      placeholder="e.g., Male, Female, Non-binary"
-                    />
+                    <input type="text" value={character.gender || ''} onChange={(e) => updateCharacter('gender', e.target.value)}
+                      className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all"
+                      placeholder="e.g., Male, Female, Non-binary" />
                   </div>
                 </div>
               </div>
             </div>
-
-            {/* Appearance Dropdowns */}
             <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl">
               <h3 className="text-xl font-bold mb-4 text-dark-purple-300">Appearance Details</h3>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2 text-dark-purple-300">Eye Color</label>
-                  <select
-                    value={character.eyes || ''}
-                    onChange={(e) => updateCharacter('eyes', e.target.value)}
-                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all"
-                  >
+                  <select value={character.eyes || ''} onChange={(e) => updateCharacter('eyes', e.target.value)}
+                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all">
                     <option value="">Select...</option>
-                    {appearanceOptions.eyeColors.map(color => (
-                      <option key={color} value={color}>{color}</option>
-                    ))}
+                    {appearanceOptions.eyeColors.map(color => (<option key={color} value={color}>{color}</option>))}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium mb-2 text-dark-purple-300">Hair Color</label>
-                  <select
-                    value={character.hair || ''}
-                    onChange={(e) => updateCharacter('hair', e.target.value)}
-                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all"
-                  >
+                  <select value={character.hair || ''} onChange={(e) => updateCharacter('hair', e.target.value)}
+                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all">
                     <option value="">Select...</option>
-                    {appearanceOptions.hairColors.map(color => (
-                      <option key={color} value={color}>{color}</option>
-                    ))}
+                    {appearanceOptions.hairColors.map(color => (<option key={color} value={color}>{color}</option>))}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium mb-2 text-dark-purple-300">Hair Style</label>
-                  <select
-                    value={character.hairStyle || ''}
-                    onChange={(e) => updateCharacter('hairStyle', e.target.value)}
-                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all"
-                  >
+                  <select value={character.hairStyle || ''} onChange={(e) => updateCharacter('hairStyle', e.target.value)}
+                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all">
                     <option value="">Select...</option>
-                    {appearanceOptions.hairStyles.map(style => (
-                      <option key={style} value={style}>{style}</option>
-                    ))}
+                    {appearanceOptions.hairStyles.map(style => (<option key={style} value={style}>{style}</option>))}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium mb-2 text-dark-purple-300">Skin Tone</label>
-                  <select
-                    value={character.skin || ''}
-                    onChange={(e) => updateCharacter('skin', e.target.value)}
-                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all"
-                  >
+                  <select value={character.skin || ''} onChange={(e) => updateCharacter('skin', e.target.value)}
+                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all">
                     <option value="">Select...</option>
-                    {appearanceOptions.skinTones.map(tone => (
-                      <option key={tone} value={tone}>{tone}</option>
-                    ))}
+                    {appearanceOptions.skinTones.map(tone => (<option key={tone} value={tone}>{tone}</option>))}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium mb-2 text-dark-purple-300">Favorite Color</label>
-                  <select
-                    value={character.favoriteColor || ''}
-                    onChange={(e) => updateCharacter('favoriteColor', e.target.value)}
-                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all"
-                  >
+                  <select value={character.favoriteColor || ''} onChange={(e) => updateCharacter('favoriteColor', e.target.value)}
+                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all">
                     <option value="">Select...</option>
                     <option value="teal">Teal (Andromeda)</option>
                     <option value="orange">Orange (Armando)</option>
@@ -421,16 +407,12 @@ function App() {
         {activeTab === 1 && (
           <div className="space-y-6">
             <h2 className="text-3xl font-bold text-dark-purple-300 mb-6">What You Do?</h2>
-            
             <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium mb-2 text-dark-purple-300">Class</label>
-                  <select
-                    value={character.class}
-                    onChange={(e) => updateCharacter('class', e.target.value)}
-                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all"
-                  >
+                  <select value={character.class} onChange={(e) => updateCharacter('class', e.target.value)}
+                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all">
                     <option value="">Select Class...</option>
                     <option value="barbarian">Barbarian</option>
                     <option value="bard">Bard</option>
@@ -446,26 +428,16 @@ function App() {
                     <option value="wizard">Wizard</option>
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium mb-2 text-dark-purple-300">Level</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="20"
-                    value={character.level}
+                  <input type="number" min="1" max="20" value={character.level}
                     onChange={(e) => updateCharacter('level', parseInt(e.target.value) || 1)}
-                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all"
-                  />
+                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all" />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium mb-2 text-dark-purple-300">Background</label>
-                  <select
-                    value={character.background}
-                    onChange={(e) => updateCharacter('background', e.target.value)}
-                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all"
-                  >
+                  <select value={character.background} onChange={(e) => updateCharacter('background', e.target.value)}
+                    className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all">
                     <option value="">Select Background...</option>
                     <option value="acolyte">Acolyte</option>
                     <option value="charlatan">Charlatan</option>
@@ -492,48 +464,38 @@ function App() {
           <div className="space-y-6">
             <h2 className="text-3xl font-bold text-dark-purple-300 mb-6">What You Got?</h2>
             
-            {/* Ability Scores */}
+            {/* Ability Scores with Roll Buttons */}
             <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl">
               <h3 className="text-xl font-bold mb-6 text-dark-purple-300">Ability Scores</h3>
-              
-              {/* Point Buy Info */}
               {character.statMethod === 'pointbuy' && (
-                <div className={`mb-4 p-4 rounded-lg ${
-                  pointBuyValid 
-                    ? 'bg-green-900/50 border border-green-700' 
-                    : 'bg-red-900/50 border border-red-700'
-                }`}>
+                <div className={`mb-4 p-4 rounded-lg ${pointBuyValid ? 'bg-green-900/50 border border-green-700' : 'bg-red-900/50 border border-red-700'}`}>
                   <div className="flex justify-between items-center">
                     <span className="text-white font-semibold">Point Buy Cost: {pointBuyCost} / 27</span>
-                    <span className={pointBuyValid ? 'text-green-400' : 'text-red-400'}>
-                      {pointBuyValid ? '✅ Valid' : '❌ Over budget'}
-                    </span>
+                    <span className={pointBuyValid ? 'text-green-400' : 'text-red-400'}>{pointBuyValid ? '✅ Valid' : '❌ Over budget'}</span>
                   </div>
                 </div>
               )}
-              
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {Object.entries(character.abilities).map(([ability, score]) => (
                   <div key={ability} className="bg-dark-purple-950 p-4 rounded-lg border border-dark-purple-700">
-                    <label className="block text-sm font-medium mb-2 uppercase text-dark-purple-400">
-                      {abilityLabels[ability] || ability}
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="20"
-                      value={score}
+                    <label className="block text-sm font-medium mb-2 uppercase text-dark-purple-400">{abilityLabels[ability] || ability}</label>
+                    <input type="number" min="1" max="20" value={score}
                       onChange={(e) => updateAbility(ability, e.target.value)}
-                      className="w-full bg-dark-purple-900 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white text-center text-2xl font-bold mb-2 focus:outline-none focus:border-dark-purple-500 transition-all"
-                    />
+                      className="w-full bg-dark-purple-900 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white text-center text-2xl font-bold mb-2 focus:outline-none focus:border-dark-purple-500 transition-all" />
                     <div className="text-center text-lg font-bold text-dark-purple-300">
-                      Modifier: {getModifier(score) >= 0 ? '+' : ''}{getModifier(score)}
+                      Modifier: {(score - 10) >= 0 ? '+' : ''}{Math.floor((score - 10) / 2)}
                     </div>
-                    {character.modifiers && character.modifiers[ability] !== getModifier(score) && (
+                    {character.modifiers && character.modifiers[ability] !== Math.floor((score - 10) / 2) && (
                       <div className="text-center text-sm text-dark-purple-400 mt-1">
                         With racial ASI: {character.modifiers[ability] >= 0 ? '+' : ''}{character.modifiers[ability]}
                       </div>
                     )}
+                    <button
+                      onClick={() => handleRoll(() => rollSavingThrow(ability), `${abilityLabels[ability]} Save`)}
+                      className="mt-2 w-full bg-dark-purple-800 hover:bg-dark-purple-700 text-white text-sm py-2 px-4 rounded transition-all"
+                    >
+                       Roll Save
+                    </button>
                   </div>
                 ))}
               </div>
@@ -546,9 +508,15 @@ function App() {
                 {Object.entries(character.savingThrows || {}).map(([ability, value]) => (
                   <div key={ability} className="bg-dark-purple-950 p-3 rounded-lg border border-dark-purple-700 flex justify-between items-center">
                     <span className="text-dark-purple-300 capitalize">{abilityLabels[ability] || ability}</span>
-                    <span className="text-2xl font-bold text-white">
-                      {value >= 0 ? '+' : ''}{value}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-bold text-white">{value >= 0 ? '+' : ''}{value}</span>
+                      <button
+                        onClick={() => handleRoll(() => rollSavingThrow(ability), `${abilityLabels[ability]} Save`)}
+                        className="text-dark-purple-400 hover:text-white text-xs"
+                      >
+                        🎲
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -560,56 +528,36 @@ function App() {
         {activeTab === 3 && (
           <div className="space-y-6">
             <h2 className="text-3xl font-bold text-dark-purple-300 mb-6">What You Built Of?</h2>
-            
             <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2 text-dark-purple-300">Personality Traits</label>
-                <textarea
-                  value={character.personalityTraits || ''}
-                  onChange={(e) => updateCharacter('personalityTraits', e.target.value)}
-                  className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all min-h-[100px]"
-                  placeholder="Describe your personality..."
-                />
+                <textarea value={character.personalityTraits || ''} onChange={(e) => updateCharacter('personalityTraits', e.target.value)}
+                  className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all min-h-[100px]"
+                  placeholder="Describe your personality..." />
               </div>
-
               <div>
                 <label className="block text-sm font-medium mb-2 text-dark-purple-300">Ideals</label>
-                <textarea
-                  value={character.ideals || ''}
-                  onChange={(e) => updateCharacter('ideals', e.target.value)}
-                  className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all min-h-[100px]"
-                  placeholder="What do you believe in?"
-                />
+                <textarea value={character.ideals || ''} onChange={(e) => updateCharacter('ideals', e.target.value)}
+                  className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all min-h-[100px]"
+                  placeholder="What do you believe in?" />
               </div>
-
               <div>
                 <label className="block text-sm font-medium mb-2 text-dark-purple-300">Bonds</label>
-                <textarea
-                  value={character.bonds || ''}
-                  onChange={(e) => updateCharacter('bonds', e.target.value)}
-                  className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all min-h-[100px]"
-                  placeholder="What ties you to the world?"
-                />
+                <textarea value={character.bonds || ''} onChange={(e) => updateCharacter('bonds', e.target.value)}
+                  className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all min-h-[100px]"
+                  placeholder="What ties you to the world?" />
               </div>
-
               <div>
                 <label className="block text-sm font-medium mb-2 text-dark-purple-300">Flaws</label>
-                <textarea
-                  value={character.flaws || ''}
-                  onChange={(e) => updateCharacter('flaws', e.target.value)}
-                  className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all min-h-[100px]"
-                  placeholder="What are your weaknesses?"
-                />
+                <textarea value={character.flaws || ''} onChange={(e) => updateCharacter('flaws', e.target.value)}
+                  className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all min-h-[100px]"
+                  placeholder="What are your weaknesses?" />
               </div>
-
               <div>
                 <label className="block text-sm font-medium mb-2 text-dark-purple-300">Backstory</label>
-                <textarea
-                  value={character.backstory || ''}
-                  onChange={(e) => updateCharacter('backstory', e.target.value)}
-                  className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all min-h-[200px]"
-                  placeholder="Tell your story..."
-                />
+                <textarea value={character.backstory || ''} onChange={(e) => updateCharacter('backstory', e.target.value)}
+                  className="w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-dark-purple-500 transition-all min-h-[200px]"
+                  placeholder="Tell your story..." />
               </div>
             </div>
           </div>
@@ -619,12 +567,9 @@ function App() {
         {activeTab === 4 && (
           <div className="space-y-6">
             <h2 className="text-3xl font-bold text-dark-purple-300 mb-6">What Ya Share?</h2>
-            
             <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl text-center">
               <h3 className="text-xl font-bold mb-4 text-dark-purple-300">Export Character</h3>
-              <p className="text-dark-purple-300 mb-6">
-                Download your character as a JSON file to share with your DM or friends
-              </p>
+              <p className="text-dark-purple-300 mb-6">Download your character as a JSON file to share with your DM or friends</p>
               <button
                 onClick={() => {
                   const dataStr = JSON.stringify(character, null, 2)
@@ -647,12 +592,9 @@ function App() {
         {activeTab === 5 && (
           <div className="space-y-6">
             <h2 className="text-3xl font-bold text-dark-purple-300 mb-6">What Ya Make?</h2>
-            
             <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl text-center">
               <h3 className="text-xl font-bold mb-4 text-dark-purple-300">Custom Content Creator</h3>
-              <p className="text-dark-purple-300 mb-6">
-                Create custom races, classes, items, and more for your campaign
-              </p>
+              <p className="text-dark-purple-300 mb-6">Create custom races, classes, items, and more for your campaign</p>
               <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
                 <button className="bg-dark-purple-800 hover:bg-dark-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 border border-dark-purple-600">
                   Create Custom Race
