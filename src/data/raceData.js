@@ -6,7 +6,7 @@ export const raceData = {
     description: 'Humans are the most adaptable and ambitious people among the common races. They have widely varying tastes, morals, and customs. Humans individualistic, striving for achievement in many fields.',
     speed: 30,
     ageRange: { min: 18, max: 80 },
-    heightRange: { min: 60, max: 78 }, // inches (5'0" to 6'6")
+    heightRange: { min: 60, max: 78 },
     weightRange: { min: 120, max: 250 },
     abilityScores: { str: 1, dex: 1, con: 1, int: 1, wis: 1, cha: 1 },
     features: [
@@ -272,7 +272,6 @@ export const getAllRaces = () => {
   const races = []
   
   Object.entries(raceData).forEach(([key, race]) => {
-    // Add base race
     races.push({
       key,
       name: race.name,
@@ -280,7 +279,6 @@ export const getAllRaces = () => {
       isSubrace: false,
     })
     
-    // Add subraces
     if (race.subraces) {
       Object.entries(race.subraces).forEach(([subKey, subrace]) => {
         races.push({
@@ -312,4 +310,38 @@ export const getRaceData = (raceKey) => {
     }
   }
   return { ...raceData[raceKey], isSubrace: false }
+}
+
+// =====================================================
+// APPEARANCE OPTIONS (kept from original file)
+// =====================================================
+
+export const appearanceOptions = {
+  eyeColors: [
+    'Brown', 'Blue', 'Green', 'Hazel', 'Gray', 'Amber',
+    'Violet', 'Red', 'Gold', 'Silver', 'Black', 'White',
+    'Pale Blue', 'Dark Brown', 'Light Blue', 'Emerald',
+  ],
+  hairColors: [
+    'Black', 'Brown', 'Blonde', 'Red', 'Gray', 'White',
+    'Auburn', 'Chestnut', 'Platinum', 'Silver', 'Blue',
+    'Green', 'Purple', 'Pink', 'Orange', 'Golden',
+  ],
+  hairStyles: [
+    'Short', 'Medium', 'Long', 'Bald', 'Buzz Cut',
+    'Ponytail', 'Braids', 'Dreadlocks', 'Mohawk', 'Afro',
+    'Curly', 'Wavy', 'Straight', 'Spiky', 'Top Knot',
+  ],
+  skinTones: [
+    'Fair', 'Light', 'Medium', 'Olive', 'Tan',
+    'Dark', 'Deep', 'Pale', 'Bronze', 'Ebony',
+    'Porcelain', 'Peach', 'Beige', 'Caramel', 'Mahogany',
+  ],
+}
+
+// Helper to convert inches to feet/inches
+export const inchesToFeetInches = (inches) => {
+  const feet = Math.floor(inches / 12)
+  const remainingInches = inches % 12
+  return `${feet}'${remainingInches}"`
 }
