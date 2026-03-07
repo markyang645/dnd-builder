@@ -83,6 +83,41 @@ export const rollD20 = (modifier = 0, { advantage = false, disadvantage = false 
   }
 }
 
+// Roll initiative (d20 + DEX mod)
+export const rollInitiative = (dexModifier) => {
+  return rollD20(dexModifier)
+}
+
+// Roll a skill check (d20 + ability mod + proficiency if applicable)
+export const rollSkillCheck = (abilityMod, proficiencyBonus = 0, proficient = false) => {
+  const totalMod = abilityMod + (proficient ? proficiencyBonus : 0)
+  return rollD20(totalMod)
+}
+
+// Roll a saving throw (d20 + ability mod + proficiency if applicable)
+export const rollSavingThrow = (abilityMod, proficiencyBonus = 0, proficient = false) => {
+  const totalMod = abilityMod + (proficient ? proficiencyBonus : 0)
+  return rollD20(totalMod)
+}
+
+// Roll an attack (d20 + attack bonus)
+export const rollAttack = (attackBonus, { advantage = false, disadvantage = false } = {}) => {
+  return rollD20(attackBonus, { advantage, disadvantage })
+}
+
+// Roll death saving throw (pure d20, no modifier)
+export const rollDeathSave = () => {
+  const roll = rollDie(20)
+  return {
+    roll,
+    success: roll >= 10,
+    natural20: roll === 20,
+    natural1: roll === 1,
+    instantStabilize: roll === 20,
+    instantFail: roll === 1,
+  }
+}
+
 // Roll damage (e.g., "1d8+3" for a longsword with +3 STR)
 export const rollDamage = (diceNotation, modifier = 0) => {
   const match = diceNotation.match(/^(\d*)d(\d+)([+-]\d+)?$/)
