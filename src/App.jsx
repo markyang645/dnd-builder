@@ -52,6 +52,9 @@ function App() {
   const pointBuyValid = character ? validatePointBuy(character.abilities) : true
   const pointBuyPercent = Math.min(100, (pointBuyCost / pointBuyTotal) * 100)
 
+  // Get current stat tab (default to pointbuy if not set)
+  const currentStatTab = character?.activeStatTab || 'pointbuy'
+
   const handleRoll = (rollFn, label) => {
     const result = rollFn()
     setLastRoll({ label, result, timestamp: Date.now() })
@@ -144,7 +147,7 @@ function App() {
                   key={tab.id}
                   onClick={() => setActiveStatTab(tab.id)}
                   className={`flex-1 py-2 px-3 rounded-lg font-semibold transition-all text-xs border-2 ${
-                    character.activeStatTab === tab.id
+                    currentStatTab === tab.id
                       ? 'bg-dark-purple-600 border-white text-white'
                       : 'bg-dark-purple-900 border-dark-purple-700 text-dark-purple-300 hover:border-dark-purple-500'
                   }`}
@@ -224,7 +227,7 @@ function App() {
               <h2 className="text-2xl font-bold text-dark-purple-300">What You Got?</h2>
               
               {/* Standard Array Tab */}
-              {character.activeStatTab === 'standard' && (
+              {currentStatTab === 'standard' && (
                 <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-dark-purple-300">📋 Standard Array</h3>
                   <p className="text-dark-purple-400 text-sm mb-4">Assign these scores to your abilities: 15, 14, 13, 12, 10, 8</p>
@@ -249,7 +252,7 @@ function App() {
               )}
 
               {/* Point Buy Tab - WITH COUNTER AT BOTTOM */}
-              {character.activeStatTab === 'pointbuy' && (
+              {currentStatTab === 'pointbuy' && (
                 <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-dark-purple-300">💰 Point Buy</h3>
                   <div className={`p-4 rounded-lg mb-4 ${pointBuyValid ? 'bg-green-900/50 border border-green-700' : 'bg-red-900/50 border border-red-700'}`}>
@@ -300,7 +303,7 @@ function App() {
               )}
 
               {/* Roll Stats Tab */}
-              {character.activeStatTab === 'roll' && (
+              {currentStatTab === 'roll' && (
                 <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-dark-purple-300">🎲 Roll Stats (4d6 drop lowest)</h3>
                   <p className="text-dark-purple-400 text-sm mb-4">Roll 4 six-sided dice, drop the lowest, sum the remaining 3.</p>
