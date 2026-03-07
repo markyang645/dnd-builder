@@ -52,13 +52,38 @@ function App() {
   const pointBuyValid = character ? validatePointBuy(character.abilities) : true
   const pointBuyPercent = Math.min(100, (pointBuyCost / pointBuyTotal) * 100)
 
-  // Get current stat tab from character or default to pointbuy
   const currentStatTab = character?.activeStatTab || 'pointbuy'
 
   const handleRoll = (rollFn, label) => {
     const result = rollFn()
     setLastRoll({ label, result, timestamp: Date.now() })
     return result
+  }
+
+  // Get available scores for Standard Array dropdowns
+  const getAvailableScores = (currentAbility) => {
+    const usedScores = []
+    Object.entries(character.abilities).forEach(([ability, score]) => {
+      if (ability !== currentAbility) {
+        usedScores.push(score)
+      }
+    })
+    
+    // Start with standard array and remove used scores
+    let available = [...standardArray]
+    usedScores.forEach(score => {
+      const index = available.indexOf(score)
+      if (index > -1) {
+        available.splice(index, 1)
+      }
+    })
+    
+    // Always include current ability's score if it's from standard array
+    if (standardArray.includes(character.abilities[currentAbility])) {
+      available.push(character.abilities[currentAbility])
+    }
+    
+    return available.sort((a, b) => b - a)
   }
 
   if (!character) {
@@ -140,15 +165,12 @@ function App() {
               <button onClick={() => createCharacter('New Character', 'pointbuy')} className="bg-purple-800 hover:bg-purple-700 text-white font-semibold py-1.5 px-3 rounded-lg transition-all border border-purple-600 text-sm">+ New</button>
             </div>
 
-            {/* Stat Method Tabs - THESE NOW HIGHLIGHT PROPERLY */}
+            {/* Stat Method Tabs */}
             <div className="flex gap-2 mb-3">
               {statTabs.map(tab => (
                 <button
                   key={tab.id}
-                  onClick={() => {
-                    console.log('Clicking tab:', tab.id)
-                    setActiveStatTab(tab.id)
-                  }}
+                  onClick={() => setActiveStatTab(tab.id)}
                   className={`flex-1 py-2 px-3 rounded-lg font-semibold transition-all text-xs border-2 ${
                     currentStatTab === tab.id
                       ? 'bg-purple-600 border-white text-white shadow-lg shadow-purple-600/50'
@@ -230,7 +252,7 @@ function App() {
               <h2 className="text-2xl font-bold text-purple-300">What You Got?</h2>
               <div className="text-purple-400 text-sm mb-4">Current Method: <span className="text-white font-bold">{currentStatTab === 'standard' ? '📋 Standard Array' : currentStatTab === 'pointbuy' ? '💰 Point Buy' : '🎲 Roll'}</span></div>
               
-              {/* Standard Array Tab - ONLY SHOWS WHEN currentStatTab === 'standard' */}
+              {/* Standard Array Tab - WITH DROPDOWNS */}
               {currentStatTab === 'standard' && (
                 <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-purple-300">📋 Standard Array</h3>
@@ -241,21 +263,32 @@ function App() {
                     ))}
                   </div>
                   
-                  {/* Ability Score Inputs */}
+                  {/* Ability Score Dropdowns */}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4">
-                    {Object.entries(character.abilities).map(([ability, score]) => (
-                      <div key={ability} className="bg-black p-3 rounded-lg border border-purple-800">
-                        <label className="block text-xs font-medium mb-1 uppercase text-purple-400">{abilityLabels[ability] || ability}</label>
-                        <input type="number" min="1" max="20" value={score} onChange={(e) => updateAbility(ability, e.target.value)} className="w-full bg-neutral-950 border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-center text-xl font-bold mb-1 focus:outline-none focus:border-purple-500 transition-all" />
-                        <div className="text-center text-sm font-bold text-purple-300">Mod: {(score - 10) >= 0 ? '+' : ''}{Math.floor((score - 10) / 2)}</div>
-                        <button onClick={() => handleRoll(() => rollSavingThrow(ability), `${abilityLabels[ability]} Save`)} className="mt-2 w-full bg-purple-800 hover:bg-purple-700 text-white text-xs py-1.5 px-3 rounded transition-all">Roll Save</button>
-                      </div>
-                    ))}
+                    {Object.entries(character.abilities).map(([ability, score]) => {
+                      const availableScores = getAvailableScores(ability)
+                      return (
+                        <div key={ability} className="bg-black p-3 rounded-lg border border-purple-800">
+                          <label className="block text-xs font-medium mb-1 uppercase text-purple-400">{abilityLabels[ability] || ability}</label>
+                          <select
+                            value={score}
+                            onChange={(e) => updateAbility(ability, e.target.value)}
+                            className="w-full bg-neutral-950 border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-center text-xl font-bold mb-1 focus:outline-none focus:border-purple-500 transition-all"
+                          >
+                            {availableScores.map(s => (
+                              <option key={s} value={s}>{s}</option>
+                            ))}
+                          </select>
+                          <div className="text-center text-sm font-bold text-purple-300">Mod: {(score - 10) >= 0 ? '+' : ''}{Math.floor((score - 10) / 2)}</div>
+                          <button onClick={() => handleRoll(() => rollSavingThrow(ability), `${abilityLabels[ability]} Save`)} className="mt-2 w-full bg-purple-800 hover:bg-purple-700 text-white text-xs py-1.5 px-3 rounded transition-all">Roll Save</button>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
 
-              {/* Point Buy Tab - ONLY SHOWS WHEN currentStatTab === 'pointbuy' */}
+              {/* Point Buy Tab */}
               {currentStatTab === 'pointbuy' && (
                 <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-purple-300">💰 Point Buy</h3>
@@ -293,7 +326,7 @@ function App() {
                     ))}
                   </div>
                   
-                  {/* POINT COUNTER AT BOTTOM - ONLY SHOWS IN POINT BUY */}
+                  {/* POINT COUNTER AT BOTTOM */}
                   <div className={`mt-4 p-4 rounded-lg border-2 ${pointBuyValid ? 'bg-green-900/30 border-green-600' : 'bg-red-900/30 border-red-600'}`}>
                     <div className="flex justify-between items-center">
                       <span className="text-white font-bold text-xl">Points Remaining</span>
@@ -306,7 +339,7 @@ function App() {
                 </div>
               )}
 
-              {/* Roll Stats Tab - ONLY SHOWS WHEN currentStatTab === 'roll' */}
+              {/* Roll Stats Tab */}
               {currentStatTab === 'roll' && (
                 <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-purple-300">🎲 Roll Stats (4d6 drop lowest)</h3>
