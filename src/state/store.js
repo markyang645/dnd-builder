@@ -12,6 +12,7 @@ import {
   generateAbilityScores, formatRoll, rollDie,
 } from '../lib/dice'
 import { skills, classSkillProficiencies, backgroundSkills } from '../data/skillsData'
+import { raceData, getRaceData } from '../data/raceData'
 
 const genId = () => Math.random().toString(36).slice(2)
 
@@ -52,6 +53,7 @@ export const useCharacterStore = create(
           age: '', gender: '', height: '', weight: '',
           eyes: '', hair: '', hairStyle: '', skin: '', favoriteColor: '',
           abilities,
+          baseAbilities: { ...abilities }, // Store base scores before racial bonuses
           modifiers: { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 },
           savingThrows: { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 },
           skillProficiencies: [],
@@ -82,7 +84,7 @@ export const useCharacterStore = create(
     setActiveStatTab: (tab) => set((state) => {
       if (!state.character) return state
       
-      let abilities = { ...state.character.abilities }
+      let abilities = { ...state.character.baseAbilities }
       let rollResults = []
       let rollBreakdowns = {}
       
@@ -104,7 +106,8 @@ export const useCharacterStore = create(
       
       const updated = { 
         ...state.character, 
-        abilities, 
+        baseAbilities: { ...abilities },
+        abilities: { ...abilities },
         statMethod: tab,
         activeStatTab: tab,
       }
@@ -146,14 +149,15 @@ export const useCharacterStore = create(
         )
         
         if (state.character.statMethod === 'pointbuy') {
-          const testAbilities = { ...state.character.abilities, [ability]: clampedValue }
+          const testAbilities = { ...state.character.baseAbilities, [ability]: clampedValue }
           const cost = getPointBuyCost(testAbilities)
           if (cost > pointBuyTotal) validationErrors.push(`Point Buy cost (${cost}) exceeds maximum (${pointBuyTotal})`)
         }
         
         const updated = {
           ...state.character,
-          abilities: { ...state.character.abilities, [ability]: clampedValue },
+          baseAbilities: { ...state.character.baseAbilities, [ability]: clampedValue },
+          abilities: { ...state.character.baseAbilities, [ability]: clampedValue },
           updatedAt: Date.now(),
         }
         
@@ -163,17 +167,27 @@ export const useCharacterStore = create(
     calculateDerivedStats: (char) => {
       if (!char) return null
       
+      // Start with base abilities
+      const baseAbilities = char.baseAbilities || char.abilities || { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }
+      
+      // Apply racial ability score increases
+      let abilities = { ...baseAbilities }
+      if (char.race) {
+        const race = getRaceData(char.race)
+        if (race && race.abilityScoreIncrease) {
+          Object.entries(race.abilityScoreIncrease).forEach(([ability, bonus]) => {
+            if (abilities[ability] !== undefined) {
+              abilities[ability] = baseAbilities[ability] + bonus
+            }
+          })
+        }
+      }
+      
+      // Calculate modifiers from final abilities (with racial bonuses)
       const modifiers = {}
-      Object.entries(char.abilities).forEach(([ability, score]) => {
+      Object.entries(abilities).forEach(([ability, score]) => {
         modifiers[ability] = getModifier(score)
       })
-      
-      if (char.race && racialASI[char.race]) {
-        Object.entries(racialASI[char.race]).forEach(([ability, bonus]) => {
-          const baseScore = char.abilities[ability] || 10
-          modifiers[ability] = getModifier(baseScore + bonus)
-        })
-      }
       
       const profBonus = getProficiencyBonus(char.level || 1)
       const savingThrows = {}
@@ -197,19 +211,36 @@ export const useCharacterStore = create(
       
       const dexMod = modifiers.dex || 0
       const ac = calculateAC(char.armorType || 'none', dexMod, char.hasShield || false)
-      const speed = char.race ? racialSpeed[char.race] || 30 : 30
+      const speed = char.race ? (getRaceData(char.race).speed || 30) : 30
       const initiative = dexMod
-      const spellSaveDC = char.class ? calculateSpellSaveDC(char.class, char.abilities, profBonus) : 0
-      const attackBonus = char.class ? calculateAttackBonus(char.class, char.abilities, profBonus) : 0
-      const carryingCapacity = calculateCarryingCapacity(char.abilities.str || 10)
+      const spellSaveDC = char.class ? calculateSpellSaveDC(char.class, abilities, profBonus) : 0
+      const attackBonus = char.class ? calculateAttackBonus(char.class, abilities, profBonus) : 0
+      const carryingCapacity = calculateCarryingCapacity(abilities.str || 10)
       const pushDragLift = carryingCapacity * 2
       const asiCount = asiLevels.filter(l => l <= (char.level || 1)).length
       const asiAvailable = asiCount - (char.asiUsed || 0)
       
-      return { ...char, modifiers, savingThrows, proficiencyBonus: profBonus, hitPoints, maxHitPoints, hpHistory, armorClass: ac, speed, initiative, spellSaveDC, attackBonus, carryingCapacity, pushDragLift, asiAvailable }
+      return { 
+        ...char, 
+        abilities, // Final abilities with racial bonuses
+        baseAbilities, // Base scores without bonuses
+        modifiers, 
+        savingThrows, 
+        proficiencyBonus: profBonus, 
+        hitPoints, 
+        maxHitPoints, 
+        hpHistory, 
+        armorClass: ac, 
+        speed, 
+        initiative, 
+        spellSaveDC, 
+        attackBonus, 
+        carryingCapacity, 
+        pushDragLift, 
+        asiAvailable 
+      }
     },
 
-    // Toggle skill proficiency
     toggleSkillProficiency: (skillKey) =>
       set((state) => {
         if (!state.character) return state
@@ -239,7 +270,6 @@ export const useCharacterStore = create(
         }
       }),
 
-    // Get skill modifier
     getSkillModifier: (skillKey) => {
       const state = get()
       if (!state.character) return 0
@@ -265,7 +295,13 @@ export const useCharacterStore = create(
           rollBreakdowns[result.ability] = result.breakdown
         })
         const rollResults = scores.map(r => ({ ability: r.ability, result: r.breakdown, timestamp: Date.now() }))
-        const updated = { ...state.character, abilities, statMethod: 'roll', activeStatTab: 'roll' }
+        const updated = { 
+          ...state.character, 
+          baseAbilities: { ...abilities },
+          abilities: { ...abilities },
+          statMethod: 'roll', 
+          activeStatTab: 'roll' 
+        }
         return {
           character: get().calculateDerivedStats(updated),
           rollBreakdowns,
