@@ -12,6 +12,7 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [selectedBaseRace, setSelectedBaseRace] = useState('')
   const [selectedSubrace, setSelectedSubrace] = useState('')
+  const [showBaseOnly, setShowBaseOnly] = useState(false)
   
   const { 
     character, 
@@ -72,9 +73,11 @@ function App() {
         const [base, sub] = character.race.split('.')
         setSelectedBaseRace(base)
         setSelectedSubrace(sub)
+        setShowBaseOnly(false)
       } else {
         setSelectedBaseRace(character.race)
         setSelectedSubrace('')
+        setShowBaseOnly(true)
       }
     }
   }, [character?.race])
@@ -82,17 +85,19 @@ function App() {
   const handleBaseRaceChange = (baseRaceKey) => {
     setSelectedBaseRace(baseRaceKey)
     setSelectedSubrace('')
+    setShowBaseOnly(true)
     
     const race = raceData[baseRaceKey]
     if (race && !race.subraces) {
       updateCharacter('race', baseRaceKey)
     } else {
-      updateCharacter('race', '')
+      updateCharacter('race', baseRaceKey) // Set to base race
     }
   }
 
   const handleSubraceChange = (subraceKey) => {
     setSelectedSubrace(subraceKey)
+    setShowBaseOnly(false)
     updateCharacter('race', subraceKey)
   }
 
@@ -101,8 +106,8 @@ function App() {
   const heightValue = character?.height || currentRace.heightRange?.min || 60
   const weightValue = character?.weight || currentRace.weightRange?.min || 120
   
-  const pointBuyCost = character ? getPointBuyCost(character.abilities) : 0
-  const pointBuyValid = character ? validatePointBuy(character.abilities) : true
+  const pointBuyCost = character ? getPointBuyCost(character.baseAbilities || character.abilities) : 0
+  const pointBuyValid = character ? validatePointBuy(character.baseAbilities || character.abilities) : true
   const pointBuyPercent = Math.min(100, (pointBuyCost / pointBuyTotal) * 100)
 
   const currentStatTab = character?.activeStatTab || 'pointbuy'
@@ -115,7 +120,8 @@ function App() {
 
   const getAvailableScores = (currentAbility) => {
     const otherScores = []
-    Object.entries(character.abilities).forEach(([ability, score]) => {
+    const abilities = character.baseAbilities || character.abilities
+    Object.entries(abilities).forEach(([ability, score]) => {
       if (ability !== currentAbility && score !== null && score !== undefined && score !== 0) {
         otherScores.push(score)
       }
@@ -129,7 +135,7 @@ function App() {
       }
     })
     
-    const currentScore = character.abilities[currentAbility]
+    const currentScore = abilities[currentAbility]
     if (currentScore && standardArray.includes(currentScore)) {
       available.push(currentScore)
     }
@@ -159,7 +165,7 @@ function App() {
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="absolute -right-3 top-4 bg-purple-700 hover:bg-purple-600 text-white rounded-full p-1 border border-purple-500">{sidebarOpen ? '◀' : '▶'}</button>
           <div className="mb-4 pb-4 border-b border-purple-800">
             <h2 className="text-lg font-bold text-white">{character.name}</h2>
-            <p className="text-xs text-purple-300">Lv.{character.level}</p>
+            <p className="text-xs text-purple-300">Lv.{character.level} {character.race ? getRaceData(character.race).name : ''} {character.class ? character.class.charAt(0).toUpperCase() + character.class.slice(1) : ''}</p>
           </div>
           <div className="space-y-2 text-xs">
             <div className="bg-neutral-950 p-2 rounded border border-purple-800"><div className="text-purple-400">HP</div><div className="text-xl font-bold text-white">{character.hitPoints || 0}</div></div>
@@ -271,8 +277,28 @@ function App() {
                       </select>
                     </div>
                     
-                    {/* Subrace Dropdown */}
+                    {/* Base Only Toggle */}
                     {selectedBaseRace && raceData[selectedBaseRace]?.subraces && Object.keys(raceData[selectedBaseRace].subraces).length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          id="baseOnly"
+                          checked={showBaseOnly}
+                          onChange={(e) => {
+                            setShowBaseOnly(e.target.checked)
+                            if (e.target.checked) {
+                              setSelectedSubrace('')
+                              updateCharacter('race', selectedBaseRace)
+                            }
+                          }}
+                          className="w-4 h-4 bg-black border-2 border-purple-800 rounded accent-purple-600"
+                        />
+                        <label htmlFor="baseOnly" className="text-xs text-purple-300">Base race only (no subrace)</label>
+                      </div>
+                    )}
+                    
+                    {/* Subrace Dropdown - Only shows if base race has subraces AND not base only */}
+                    {selectedBaseRace && raceData[selectedBaseRace]?.subraces && Object.keys(raceData[selectedBaseRace].subraces).length > 0 && !showBaseOnly && (
                       <div>
                         <label className="block text-xs font-medium mb-1.5 text-purple-300">Subrace</label>
                         <select 
@@ -355,6 +381,16 @@ function App() {
               <h2 className="text-2xl font-bold text-purple-300">Ability Scores</h2>
               <div className="text-purple-400 text-sm mb-4">Current Method: <span className="text-white font-bold">{currentStatTab === 'standard' ? '📋 Standard Array' : currentStatTab === 'pointbuy' ? '💰 Point Buy' : '🎲 Roll'}</span></div>
               
+              {/* Show Racial Bonuses Info */}
+              {character.race && (
+                <div className="bg-purple-900/30 border border-purple-700 rounded-lg p-3 mb-4">
+                  <div className="flex items-center gap-2 text-sm text-purple-300">
+                    <span className="text-lg">✨</span>
+                    <span>Racial bonuses from <strong>{getRaceData(character.race).name}</strong> are automatically applied to your ability scores below.</span>
+                  </div>
+                </div>
+              )}
+              
               {currentStatTab === 'standard' && (
                 <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-purple-300">📋 Standard Array</h3>
@@ -366,15 +402,20 @@ function App() {
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4">
                     {Object.entries(character.abilities).map(([ability, score]) => {
+                      const baseScore = character.baseAbilities?.[ability] || score
+                      const hasBonus = score !== baseScore
                       const availableScores = getAvailableScores(ability)
                       return (
                         <div key={ability} className="bg-black p-3 rounded-lg border border-purple-800">
                           <label className="block text-xs font-medium mb-1 uppercase text-purple-400">{abilityLabels[ability] || ability}</label>
-                          <select value={score || ''} onChange={(e) => updateAbility(ability, e.target.value)} className="w-full bg-neutral-950 border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-center text-xl font-bold mb-1 focus:outline-none focus:border-purple-500 transition-all">
+                          <select value={baseScore || ''} onChange={(e) => updateAbility(ability, e.target.value)} className="w-full bg-neutral-950 border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-center text-xl font-bold mb-1 focus:outline-none focus:border-purple-500 transition-all">
                             <option value="">Select...</option>
                             {availableScores.map(s => (<option key={s} value={s}>{s}</option>))}
                           </select>
-                          <div className="text-center text-sm font-bold text-purple-300">Mod: {score ? ((score - 10) >= 0 ? '+' : '') + Math.floor((score - 10) / 2) : '-'}</div>
+                          <div className="text-center text-sm font-bold text-purple-300">
+                            Base: {baseScore} {hasBonus && <span className="text-green-400">→ {score} (+{score - baseScore})</span>}
+                          </div>
+                          <div className="text-center text-xs text-purple-400">Mod: {score ? ((score - 10) >= 0 ? '+' : '') + Math.floor((score - 10) / 2) : '-'}</div>
                           <button onClick={() => handleRoll(() => rollSavingThrow(ability), `${abilityLabels[ability]} Save`)} className="mt-2 w-full bg-purple-800 hover:bg-purple-700 text-white text-xs py-1.5 px-3 rounded transition-all">Roll Save</button>
                         </div>
                       )
@@ -405,15 +446,22 @@ function App() {
                     ))}
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {Object.entries(character.abilities).map(([ability, score]) => (
-                      <div key={ability} className="bg-black p-3 rounded-lg border border-purple-800">
-                        <label className="block text-xs font-medium mb-1 uppercase text-purple-400">{abilityLabels[ability] || ability}</label>
-                        <input type="number" min={pointBuyMin} max={pointBuyMax} value={score} onChange={(e) => updateAbility(ability, e.target.value)} className="w-full bg-neutral-950 border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-center text-xl font-bold mb-1 focus:outline-none focus:border-purple-500 transition-all" />
-                        <div className="text-center text-sm font-bold text-purple-300">Mod: {(score - 10) >= 0 ? '+' : ''}{Math.floor((score - 10) / 2)}</div>
-                        <div className="text-center text-[10px] text-purple-400">Cost: {pointBuyCosts[score] || 0} pts</div>
-                        <button onClick={() => handleRoll(() => rollSavingThrow(ability), `${abilityLabels[ability]} Save`)} className="mt-2 w-full bg-purple-800 hover:bg-purple-700 text-white text-xs py-1.5 px-3 rounded transition-all">Roll Save</button>
-                      </div>
-                    ))}
+                    {Object.entries(character.abilities).map(([ability, score]) => {
+                      const baseScore = character.baseAbilities?.[ability] || score
+                      const hasBonus = score !== baseScore
+                      return (
+                        <div key={ability} className="bg-black p-3 rounded-lg border border-purple-800">
+                          <label className="block text-xs font-medium mb-1 uppercase text-purple-400">{abilityLabels[ability] || ability}</label>
+                          <input type="number" min={pointBuyMin} max={pointBuyMax} value={baseScore} onChange={(e) => updateAbility(ability, e.target.value)} className="w-full bg-neutral-950 border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-center text-xl font-bold mb-1 focus:outline-none focus:border-purple-500 transition-all" />
+                          <div className="text-center text-sm font-bold text-purple-300">
+                            Base: {baseScore} {hasBonus && <span className="text-green-400">→ {score} (+{score - baseScore})</span>}
+                          </div>
+                          <div className="text-center text-[10px] text-purple-400">Cost: {pointBuyCosts[baseScore] || 0} pts</div>
+                          <div className="text-center text-xs text-purple-400">Mod: {score ? ((score - 10) >= 0 ? '+' : '') + Math.floor((score - 10) / 2) : '-'}</div>
+                          <button onClick={() => handleRoll(() => rollSavingThrow(ability), `${abilityLabels[ability]} Save`)} className="mt-2 w-full bg-purple-800 hover:bg-purple-700 text-white text-xs py-1.5 px-3 rounded transition-all">Roll Save</button>
+                        </div>
+                      )
+                    })}
                   </div>
                   <div className={`mt-4 p-4 rounded-lg border-2 ${pointBuyValid ? 'bg-green-900/30 border-green-600' : 'bg-red-900/30 border-red-600'}`}>
                     <div className="flex justify-between items-center">
@@ -439,7 +487,7 @@ function App() {
                         <div key={ability} className="bg-black p-3 rounded-lg border border-purple-800">
                           <div className="flex justify-between items-center">
                             <span className="text-white font-bold uppercase text-sm">{abilityLabels[ability] || ability}</span>
-                            <span className="text-xl font-bold text-purple-300">{character.abilities[ability]}</span>
+                            <span className="text-xl font-bold text-purple-300">{character.baseAbilities?.[ability] || character.abilities[ability]}</span>
                           </div>
                           <div className="text-xs text-purple-400 mt-1 font-mono">{breakdown}</div>
                         </div>
@@ -447,15 +495,22 @@ function App() {
                     </div>
                   )}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {Object.entries(character.abilities).map(([ability, score]) => (
-                      <div key={ability} className="bg-black p-3 rounded-lg border border-purple-800">
-                        <label className="block text-xs font-medium mb-1 uppercase text-purple-400">{abilityLabels[ability] || ability}</label>
-                        <input type="number" min="1" max="20" value={score} onChange={(e) => updateAbility(ability, e.target.value)} className="w-full bg-neutral-950 border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-center text-xl font-bold mb-1 focus:outline-none focus:border-purple-500 transition-all" />
-                        <div className="text-center text-sm font-bold text-purple-300">Mod: {(score - 10) >= 0 ? '+' : ''}{Math.floor((score - 10) / 2)}</div>
-                        {rollBreakdowns[ability] && (<div className="text-[10px] text-purple-400 mt-1 font-mono truncate" title={rollBreakdowns[ability]}>{rollBreakdowns[ability]}</div>)}
-                        <button onClick={() => handleRoll(() => rollSavingThrow(ability), `${abilityLabels[ability]} Save`)} className="mt-2 w-full bg-purple-800 hover:bg-purple-700 text-white text-xs py-1.5 px-3 rounded transition-all">Roll Save</button>
-                      </div>
-                    ))}
+                    {Object.entries(character.abilities).map(([ability, score]) => {
+                      const baseScore = character.baseAbilities?.[ability] || score
+                      const hasBonus = score !== baseScore
+                      return (
+                        <div key={ability} className="bg-black p-3 rounded-lg border border-purple-800">
+                          <label className="block text-xs font-medium mb-1 uppercase text-purple-400">{abilityLabels[ability] || ability}</label>
+                          <input type="number" min="1" max="20" value={baseScore} onChange={(e) => updateAbility(ability, e.target.value)} className="w-full bg-neutral-950 border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-center text-xl font-bold mb-1 focus:outline-none focus:border-purple-500 transition-all" />
+                          <div className="text-center text-sm font-bold text-purple-300">
+                            Base: {baseScore} {hasBonus && <span className="text-green-400">→ {score} (+{score - baseScore})</span>}
+                          </div>
+                          <div className="text-center text-xs text-purple-400">Mod: {score ? ((score - 10) >= 0 ? '+' : '') + Math.floor((score - 10) / 2) : '-'}</div>
+                          {rollBreakdowns[ability] && (<div className="text-[10px] text-purple-400 mt-1 font-mono truncate" title={rollBreakdowns[ability]}>{rollBreakdowns[ability]}</div>)}
+                          <button onClick={() => handleRoll(() => rollSavingThrow(ability), `${abilityLabels[ability]} Save`)} className="mt-2 w-full bg-purple-800 hover:bg-purple-700 text-white text-xs py-1.5 px-3 rounded transition-all">Roll Save</button>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
