@@ -1,15 +1,17 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useCharacterStore } from './state/store'
 import { raceData, appearanceOptions, inchesToFeetInches } from './data/raceData'
 import { abilityLabels, asiLevels, pointBuyCosts, pointBuyTotal, standardArray, pointBuyMin, pointBuyMax } from './data/dndRules'
 import { skills, skillsByAbility, classSkillProficiencies, backgroundSkills } from './data/skillsData'
-import { getAllRaces, getRaceData } from './data/raceData'
+import { getRaceData } from './data/raceData'
 
 function App() {
   const [activeTab, setActiveTab] = useState(0)
   const [showRollHistory, setShowRollHistory] = useState(false)
   const [lastRoll, setLastRoll] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [selectedBaseRace, setSelectedBaseRace] = useState('')
+  const [selectedSubrace, setSelectedSubrace] = useState('')
   
   const { 
     character, 
@@ -49,10 +51,62 @@ function App() {
     { id: 'roll', name: 'Roll', icon: '🎲' },
   ]
 
-  const currentRace = raceData[character?.race] || raceData.human
-  const ageValue = character?.age || currentRace.ageRange.min
-  const heightValue = character?.height || currentRace.heightRange.min
-  const weightValue = character?.weight || currentRace.weightRange.min
+  // Get list of base races only
+  const baseRaces = Object.keys(raceData).map(key => ({
+    key,
+    name: raceData[key].name,
+    hasSubraces: Object.keys(raceData[key].subraces || {}).length > 0,
+  }))
+
+  // Get subraces for selected base race
+  const getSubraces = (baseRaceKey) => {
+    const race = raceData[baseRaceKey]
+    if (!race || !race.subraces) return []
+    return Object.entries(race.subraces).map(([key, subrace]) => ({
+      key: `${baseRaceKey}.${key}`,
+      name: subrace.name,
+    }))
+  }
+
+  // Sync dropdowns with character.race
+  useEffect(() => {
+    if (character?.race) {
+      if (character.race.includes('.')) {
+        const [base, sub] = character.race.split('.')
+        setSelectedBaseRace(base)
+        setSelectedSubrace(sub)
+      } else {
+        setSelectedBaseRace(character.race)
+        setSelectedSubrace('')
+      }
+    }
+  }, [character?.race])
+
+  // Handle base race change
+  const handleBaseRaceChange = (baseRaceKey) => {
+    setSelectedBaseRace(baseRaceKey)
+    setSelectedSubrace('')
+    
+    const race = raceData[baseRaceKey]
+    if (race && !race.subraces) {
+      // No subraces - set character race to base
+      updateCharacter('race', baseRaceKey)
+    } else {
+      // Has subraces - clear character race until subrace selected
+      updateCharacter('race', '')
+    }
+  }
+
+  // Handle subrace change
+  const handleSubraceChange = (subraceKey) => {
+    setSelectedSubrace(subraceKey)
+    updateCharacter('race', subraceKey)
+  }
+
+  const currentRace = character?.race ? getRaceData(character.race) : raceData.human
+  const ageValue = character?.age || currentRace.ageRange?.min || 18
+  const heightValue = character?.height || currentRace.heightRange?.min || 60
+  const weightValue = character?.weight || currentRace.weightRange?.min || 120
   
   const pointBuyCost = character ? getPointBuyCost(character.abilities) : 0
   const pointBuyValid = character ? validatePointBuy(character.abilities) : true
@@ -209,56 +263,73 @@ function App() {
                 <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-3 text-purple-300">Race & Identity</h3>
                   <div className="space-y-3">
+                    {/* Base Race Dropdown */}
                     <div>
-                      <label className="block text-xs font-medium mb-1.5 text-purple-300">Race</label>
+                      <label className="block text-xs font-medium mb-1.5 text-purple-300">Base Race</label>
                       <select 
-                        value={character.race} 
-                        onChange={(e) => updateCharacter('race', e.target.value)} 
+                        value={selectedBaseRace} 
+                        onChange={(e) => handleBaseRaceChange(e.target.value)} 
                         className="w-full bg-black border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500 transition-all"
                       >
-                        <option value="">Select Race...</option>
-                        {getAllRaces().map(race => (
-                          <option key={race.key} value={race.key}>
-                            {race.isSubrace ? `  └ ${race.name}` : race.name}
-                          </option>
+                        <option value="">Select Base Race...</option>
+                        {baseRaces.map(race => (
+                          <option key={race.key} value={race.key}>{race.name}</option>
                         ))}
                       </select>
-                      
-                      {/* Race Description */}
-                      {character.race && (
-                        <div className="mt-2 p-3 bg-neutral-950 border border-purple-800 rounded-lg">
-                          <h4 className="text-sm font-bold text-purple-300 mb-1">
-                            {getRaceData(character.race).name}
-                          </h4>
-                          <p className="text-xs text-purple-400 mb-2">
-                            {getRaceData(character.race).description}
-                          </p>
-                          <div className="text-xs text-purple-300">
-                            <div className="font-semibold mb-1">Features:</div>
-                            <ul className="list-disc list-inside space-y-0.5">
-                              {getRaceData(character.race).features?.map((feature, i) => (
-                                <li key={i} className="text-[10px]">{feature}</li>
-                              ))}
-                            </ul>
-                          </div>
+                    </div>
+                    
+                    {/* Subrace Dropdown - Only shows if base race has subraces */}
+                    {selectedBaseRace && raceData[selectedBaseRace]?.subraces && Object.keys(raceData[selectedBaseRace].subraces).length > 0 && (
+                      <div>
+                        <label className="block text-xs font-medium mb-1.5 text-purple-300">Subrace</label>
+                        <select 
+                          value={selectedSubrace} 
+                          onChange={(e) => handleSubraceChange(e.target.value)} 
+                          className="w-full bg-black border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500 transition-all"
+                        >
+                          <option value="">Select Subrace...</option>
+                          {getSubraces(selectedBaseRace).map(subrace => (
+                            <option key={subrace.key} value={subrace.key}>{subrace.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    
+                    {/* Race Description */}
+                    {character.race && (
+                      <div className="mt-2 p-3 bg-neutral-950 border border-purple-800 rounded-lg">
+                        <h4 className="text-sm font-bold text-purple-300 mb-1">
+                          {getRaceData(character.race).name}
+                          {getRaceData(character.race).isSubrace && ` (${getRaceData(character.race).baseRaceName})`}
+                        </h4>
+                        <p className="text-xs text-purple-400 mb-2">
+                          {getRaceData(character.race).description}
+                        </p>
+                        <div className="text-xs text-purple-300">
+                          <div className="font-semibold mb-1">Features:</div>
+                          <ul className="list-disc list-inside space-y-0.5">
+                            {getRaceData(character.race).features?.map((feature, i) => (
+                              <li key={i} className="text-[10px]">{feature}</li>
+                            ))}
+                          </ul>
                         </div>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium mb-1.5 text-purple-300">Alignment</label>
-                      <select value={character.alignment} onChange={(e) => updateCharacter('alignment', e.target.value)} className="w-full bg-black border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500 transition-all">
-                        <option value="">Select Alignment...</option>
-                        {['lawful-good','neutral-good','chaotic-good','lawful-neutral','true-neutral','chaotic-neutral','lawful-evil','neutral-evil','chaotic-evil'].map(a => (<option key={a} value={a}>{a.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>))}
-                      </select>
-                    </div>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1.5 text-purple-300">Alignment</label>
+                    <select value={character.alignment} onChange={(e) => updateCharacter('alignment', e.target.value)} className="w-full bg-black border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500 transition-all">
+                      <option value="">Select Alignment...</option>
+                      {['lawful-good','neutral-good','chaotic-good','lawful-neutral','true-neutral','chaotic-neutral','lawful-evil','neutral-evil','chaotic-evil'].map(a => (<option key={a} value={a}>{a.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>))}
+                    </select>
                   </div>
                 </div>
                 <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-3 text-purple-300">Physical Description</h3>
                   <div className="space-y-3">
-                    <div><label className="block text-xs font-medium mb-1.5 text-purple-300">Age: <span className="text-purple-400">{ageValue} yrs</span></label><input type="range" min={currentRace.ageRange.min} max={currentRace.ageRange.max} value={ageValue} onChange={(e) => updateCharacter('age', parseInt(e.target.value))} className="w-full h-2 bg-black rounded-lg appearance-none cursor-pointer accent-purple-500" /></div>
-                    <div><label className="block text-xs font-medium mb-1.5 text-purple-300">Height: <span className="text-purple-400">{inchesToFeetInches(heightValue)}</span></label><input type="range" min={currentRace.heightRange.min} max={currentRace.heightRange.max} value={heightValue} onChange={(e) => updateCharacter('height', parseInt(e.target.value))} className="w-full h-2 bg-black rounded-lg appearance-none cursor-pointer accent-purple-500" /></div>
-                    <div><label className="block text-xs font-medium mb-1.5 text-purple-300">Weight: <span className="text-purple-400">{weightValue} lbs</span></label><input type="range" min={currentRace.weightRange.min} max={currentRace.weightRange.max} value={weightValue} onChange={(e) => updateCharacter('weight', parseInt(e.target.value))} className="w-full h-2 bg-black rounded-lg appearance-none cursor-pointer accent-purple-500" /></div>
+                    <div><label className="block text-xs font-medium mb-1.5 text-purple-300">Age: <span className="text-purple-400">{ageValue} yrs</span></label><input type="range" min={currentRace.ageRange?.min || 18} max={currentRace.ageRange?.max || 80} value={ageValue} onChange={(e) => updateCharacter('age', parseInt(e.target.value))} className="w-full h-2 bg-black rounded-lg appearance-none cursor-pointer accent-purple-500" /></div>
+                    <div><label className="block text-xs font-medium mb-1.5 text-purple-300">Height: <span className="text-purple-400">{inchesToFeetInches(heightValue)}</span></label><input type="range" min={currentRace.heightRange?.min || 60} max={currentRace.heightRange?.max || 78} value={heightValue} onChange={(e) => updateCharacter('height', parseInt(e.target.value))} className="w-full h-2 bg-black rounded-lg appearance-none cursor-pointer accent-purple-500" /></div>
+                    <div><label className="block text-xs font-medium mb-1.5 text-purple-300">Weight: <span className="text-purple-400">{weightValue} lbs</span></label><input type="range" min={currentRace.weightRange?.min || 120} max={currentRace.weightRange?.max || 250} value={weightValue} onChange={(e) => updateCharacter('weight', parseInt(e.target.value))} className="w-full h-2 bg-black rounded-lg appearance-none cursor-pointer accent-purple-500" /></div>
                     <div><label className="block text-xs font-medium mb-1.5 text-purple-300">Gender</label><input type="text" value={character.gender || ''} onChange={(e) => updateCharacter('gender', e.target.value)} className="w-full bg-black border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500 transition-all" placeholder="e.g., Male, Female" /></div>
                   </div>
                 </div>
