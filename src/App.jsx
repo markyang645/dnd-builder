@@ -250,7 +250,7 @@ function App() {
                 </div>
               )}
 
-              {/* Point Buy Tab - WITH COUNTER AT BOTTOM */}
+              {/* Point Buy Tab */}
               {currentStatTab === 'pointbuy' && (
                 <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-purple-300">💰 Point Buy</h3>
