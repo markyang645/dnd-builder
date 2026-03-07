@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useCharacterStore } from './state/store'
-import { raceData, appearanceOptions, inchesToFeetInches } from './data/raceData'
+import { raceData, appearanceOptions, inchesToFeetInches, getRaceData, getRaceFeatures } from './data/raceData'
 import { abilityLabels, asiLevels, pointBuyCosts, pointBuyTotal, standardArray, pointBuyMin, pointBuyMax } from './data/dndRules'
 import { skills, skillsByAbility, classSkillProficiencies, backgroundSkills } from './data/skillsData'
-import { getRaceData } from './data/raceData'
+import { FeatureList } from './components/FeatureList'
 
 function App() {
   const [activeTab, setActiveTab] = useState(0)
@@ -51,14 +51,12 @@ function App() {
     { id: 'roll', name: 'Roll', icon: '🎲' },
   ]
 
-  // Get list of base races only
   const baseRaces = Object.keys(raceData).map(key => ({
     key,
     name: raceData[key].name,
     hasSubraces: Object.keys(raceData[key].subraces || {}).length > 0,
   }))
 
-  // Get subraces for selected base race
   const getSubraces = (baseRaceKey) => {
     const race = raceData[baseRaceKey]
     if (!race || !race.subraces) return []
@@ -68,7 +66,6 @@ function App() {
     }))
   }
 
-  // Sync dropdowns with character.race
   useEffect(() => {
     if (character?.race) {
       if (character.race.includes('.')) {
@@ -82,22 +79,18 @@ function App() {
     }
   }, [character?.race])
 
-  // Handle base race change
   const handleBaseRaceChange = (baseRaceKey) => {
     setSelectedBaseRace(baseRaceKey)
     setSelectedSubrace('')
     
     const race = raceData[baseRaceKey]
     if (race && !race.subraces) {
-      // No subraces - set character race to base
       updateCharacter('race', baseRaceKey)
     } else {
-      // Has subraces - clear character race until subrace selected
       updateCharacter('race', '')
     }
   }
 
-  // Handle subrace change
   const handleSubraceChange = (subraceKey) => {
     setSelectedSubrace(subraceKey)
     updateCharacter('race', subraceKey)
@@ -278,7 +271,7 @@ function App() {
                       </select>
                     </div>
                     
-                    {/* Subrace Dropdown - Only shows if base race has subraces */}
+                    {/* Subrace Dropdown */}
                     {selectedBaseRace && raceData[selectedBaseRace]?.subraces && Object.keys(raceData[selectedBaseRace].subraces).length > 0 && (
                       <div>
                         <label className="block text-xs font-medium mb-1.5 text-purple-300">Subrace</label>
@@ -295,24 +288,29 @@ function App() {
                       </div>
                     )}
                     
-                    {/* Race Description */}
+                    {/* Race Description & Features */}
                     {character.race && (
-                      <div className="mt-2 p-3 bg-neutral-950 border border-purple-800 rounded-lg">
-                        <h4 className="text-sm font-bold text-purple-300 mb-1">
-                          {getRaceData(character.race).name}
-                          {getRaceData(character.race).isSubrace && ` (${getRaceData(character.race).baseRaceName})`}
-                        </h4>
-                        <p className="text-xs text-purple-400 mb-2">
-                          {getRaceData(character.race).description}
-                        </p>
-                        <div className="text-xs text-purple-300">
-                          <div className="font-semibold mb-1">Features:</div>
-                          <ul className="list-disc list-inside space-y-0.5">
-                            {getRaceData(character.race).features?.map((feature, i) => (
-                              <li key={i} className="text-[10px]">{feature}</li>
-                            ))}
-                          </ul>
+                      <div className="mt-2 space-y-3">
+                        <div className="p-3 bg-neutral-950 border border-purple-800 rounded-lg">
+                          <h4 className="text-sm font-bold text-purple-300 mb-1">
+                            {getRaceData(character.race).name}
+                            {getRaceData(character.race).isSubrace && (
+                              <span className="text-purple-400 text-xs ml-2">
+                                ({getRaceData(character.race).baseRaceName})
+                              </span>
+                            )}
+                          </h4>
+                          <p className="text-xs text-purple-400">
+                            {getRaceData(character.race).description}
+                          </p>
                         </div>
+                        
+                        {/* Features List Component */}
+                        <FeatureList 
+                          features={getRaceFeatures(character.race)}
+                          title="Racial Features"
+                          compact={true}
+                        />
                       </div>
                     )}
                   </div>
