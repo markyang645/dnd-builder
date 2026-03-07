@@ -20,7 +20,6 @@ export const useCharacterStore = create(
     characters: [],
     rollHistory: [],
     validationErrors: [],
-    activeStatTab: 'pointbuy',
     rollBreakdowns: {},
 
     createCharacter: (name, statMethod = 'pointbuy') =>
@@ -64,6 +63,7 @@ export const useCharacterStore = create(
           personalityTraits: '', ideals: '', bonds: '', flaws: '', backstory: '',
           armorType: 'none', hasShield: false, weapons: [], equipment: [],
           statMethod: statMethod,
+          activeStatTab: statMethod, // ✅ STORE IT HERE
           createdAt: Date.now(), updatedAt: Date.now(),
         }
         
@@ -75,13 +75,13 @@ export const useCharacterStore = create(
           rollHistory: rollResults.length ? [...state.rollHistory, ...rollResults] : state.rollHistory,
           rollBreakdowns,
           validationErrors: [],
-          activeStatTab: statMethod,
         }
       }),
 
     setActiveStatTab: (tab) => set((state) => {
       if (!state.character) return state
-      let abilities = { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }
+      
+      let abilities = { ...state.character.abilities }
       let rollResults = []
       let rollBreakdowns = {}
       
@@ -100,12 +100,18 @@ export const useCharacterStore = create(
           timestamp: Date.now(),
         }))
       }
+      // pointbuy keeps current abilities
       
-      const updated = { ...state.character, abilities, statMethod: tab }
+      const updated = { 
+        ...state.character, 
+        abilities, 
+        statMethod: tab,
+        activeStatTab: tab, // ✅ UPDATE IT HERE
+      }
+      
       return {
         character: get().calculateDerivedStats(updated),
-        activeStatTab: tab,
-        rollBreakdowns: tab === 'roll' ? rollBreakdowns : {},
+        rollBreakdowns: tab === 'roll' ? rollBreakdowns : state.rollBreakdowns,
         rollHistory: rollResults.length ? [...(state.rollHistory || []), ...rollResults] : state.rollHistory,
       }
     }),
@@ -214,10 +220,9 @@ export const useCharacterStore = create(
           rollBreakdowns[result.ability] = result.breakdown
         })
         const rollResults = scores.map(r => ({ ability: r.ability, result: r.breakdown, timestamp: Date.now() }))
-        const updated = { ...state.character, abilities, statMethod: 'roll' }
+        const updated = { ...state.character, abilities, statMethod: 'roll', activeStatTab: 'roll' }
         return {
           character: get().calculateDerivedStats(updated),
-          activeStatTab: 'roll',
           rollBreakdowns,
           rollHistory: [...(state.rollHistory || []), ...rollResults],
         }
