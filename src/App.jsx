@@ -32,14 +32,15 @@ function App() {
     rollBreakdowns,
   } = useCharacterStore()
 
+  // RENAMED TABS - Clearer, more intuitive names
   const mainTabs = [
-    { name: 'WHO YOU ARE?', icon: '👤', color: 'bg-purple-600' },
-    { name: 'WHAT YOU DO?', icon: '⚔️', color: 'bg-red-600' },
-    { name: 'WHAT YOU GOT?', icon: '🎒', color: 'bg-yellow-500' },
+    { name: 'CHARACTER', icon: '👤', color: 'bg-purple-600' },
+    { name: 'CLASS', icon: '⚔️', color: 'bg-red-600' },
+    { name: 'ABILITIES', icon: '📊', color: 'bg-yellow-500' },
     { name: 'SKILLS', icon: '🎯', color: 'bg-blue-500' },
-    { name: 'WHAT YOU BUILT OF?', icon: '📖', color: 'bg-green-600' },
-    { name: 'WHAT YA SHARE?', icon: '📤', color: 'bg-sky-600' },
-    { name: 'WHAT YA MAKE?', icon: '🛠️', color: 'bg-orange-600' },
+    { name: 'DETAILS', icon: '📖', color: 'bg-green-600' },
+    { name: 'EXPORT', icon: '📤', color: 'bg-sky-600' },
+    { name: 'CUSTOM', icon: '🛠️', color: 'bg-orange-600' },
   ]
 
   const statTabs = [
@@ -187,7 +188,7 @@ function App() {
               ))}
             </div>
 
-            {/* Main Tab Navigation */}
+            {/* Main Tab Navigation - RENAMED */}
             <div className="grid grid-cols-3 md:grid-cols-7 gap-1.5">
               {mainTabs.map((tab, index) => (
                 <button key={tab.name} onClick={() => setActiveTab(index)} className={`py-2 px-1 rounded-lg font-semibold transition-all text-[10px] md:text-xs border ${activeTab === index ? `${tab.color} text-white font-bold shadow-lg border-white/30` : 'bg-neutral-900 text-purple-300 hover:bg-neutral-800 hover:text-white border-purple-800'}`}>
@@ -200,10 +201,10 @@ function App() {
         </header>
 
         <main className="max-w-6xl mx-auto px-4 py-6">
-          {/* TAB 1: WHO YOU ARE? */}
+          {/* TAB 0: CHARACTER (was WHO YOU ARE?) */}
           {activeTab === 0 && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-purple-300">Who You Are?</h2>
+              <h2 className="text-2xl font-bold text-purple-300">Character Basics</h2>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-3 text-purple-300">Race & Identity</h3>
@@ -225,7 +226,7 @@ function App() {
                   </div>
                 </div>
                 <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
-                  <h3 className="text-lg font-bold mb-3 text-purple-300">Physical</h3>
+                  <h3 className="text-lg font-bold mb-3 text-purple-300">Physical Description</h3>
                   <div className="space-y-3">
                     <div><label className="block text-xs font-medium mb-1.5 text-purple-300">Age: <span className="text-purple-400">{ageValue} yrs</span></label><input type="range" min={currentRace.ageRange.min} max={currentRace.ageRange.max} value={ageValue} onChange={(e) => updateCharacter('age', parseInt(e.target.value))} className="w-full h-2 bg-black rounded-lg appearance-none cursor-pointer accent-purple-500" /></div>
                     <div><label className="block text-xs font-medium mb-1.5 text-purple-300">Height: <span className="text-purple-400">{inchesToFeetInches(heightValue)}</span></label><input type="range" min={currentRace.heightRange.min} max={currentRace.heightRange.max} value={heightValue} onChange={(e) => updateCharacter('height', parseInt(e.target.value))} className="w-full h-2 bg-black rounded-lg appearance-none cursor-pointer accent-purple-500" /></div>
@@ -237,10 +238,10 @@ function App() {
             </div>
           )}
 
-          {/* TAB 2: WHAT YOU DO? */}
+          {/* TAB 1: CLASS (was WHAT YOU DO?) */}
           {activeTab === 1 && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-purple-300">What You Do?</h2>
+              <h2 className="text-2xl font-bold text-purple-300">Class & Background</h2>
               <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                 <div className="grid md:grid-cols-3 gap-4">
                   <div><label className="block text-xs font-medium mb-1.5 text-purple-300">Class</label><select value={character.class} onChange={(e) => updateCharacter('class', e.target.value)} className="w-full bg-black border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500 transition-all"><option value="">Select Class...</option>{['barbarian','bard','cleric','druid','fighter','monk','paladin','ranger','rogue','sorcerer','warlock','wizard'].map(c => (<option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>))}</select></div>
@@ -251,10 +252,10 @@ function App() {
             </div>
           )}
 
-          {/* TAB 3: WHAT YOU GOT? */}
+          {/* TAB 2: ABILITIES (was WHAT YOU GOT?) */}
           {activeTab === 2 && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-purple-300">What You Got?</h2>
+              <h2 className="text-2xl font-bold text-purple-300">Ability Scores</h2>
               <div className="text-purple-400 text-sm mb-4">Current Method: <span className="text-white font-bold">{currentStatTab === 'standard' ? '📋 Standard Array' : currentStatTab === 'pointbuy' ? '💰 Point Buy' : '🎲 Roll'}</span></div>
               
               {currentStatTab === 'standard' && (
@@ -364,12 +365,11 @@ function App() {
             </div>
           )}
 
-          {/* TAB 4: SKILLS */}
+          {/* TAB 3: SKILLS (unchanged) */}
           {activeTab === 3 && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-purple-300">Skills</h2>
+              <h2 className="text-2xl font-bold text-purple-300">Skills & Proficiencies</h2>
               
-              {/* Class Skills Info */}
               {character.class && (
                 <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                   <div className="flex justify-between items-center mb-4">
@@ -397,7 +397,6 @@ function App() {
                 </div>
               )}
               
-              {/* Skills by Ability */}
               {Object.entries(skillsByAbility).map(([ability, skillKeys]) => (
                 <div key={ability} className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-3 text-purple-300 capitalize flex items-center gap-2">
@@ -442,7 +441,6 @@ function App() {
                           {isProficient && <div className="text-xs text-purple-500 mt-1 flex items-center gap-1">✓ Proficient (+{character.proficiencyBonus || 2})</div>}
                           {!canSelect && !isProficient && <div className="text-xs text-neutral-500 mt-1">Not available for {character.class}</div>}
                           
-                          {/* Roll Button */}
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
@@ -461,10 +459,10 @@ function App() {
             </div>
           )}
 
-          {/* TAB 5: WHAT YOU BUILT OF? */}
+          {/* TAB 4: DETAILS (was WHAT YOU BUILT OF?) */}
           {activeTab === 4 && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-purple-300">What You Built Of?</h2>
+              <h2 className="text-2xl font-bold text-purple-300">Character Details</h2>
               <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4 space-y-3">
                 {['personalityTraits','ideals','bonds','flaws','backstory'].map(field => (
                   <div key={field}>
@@ -476,25 +474,25 @@ function App() {
             </div>
           )}
 
-          {/* TAB 6: WHAT YA SHARE? */}
+          {/* TAB 5: EXPORT (was WHAT YA SHARE?) */}
           {activeTab === 5 && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-purple-300">What Ya Share?</h2>
+              <h2 className="text-2xl font-bold text-purple-300">Export Character</h2>
               <div className="bg-neutral-900 border border-purple-800 rounded-xl p-6 text-center">
-                <h3 className="text-xl font-bold mb-3 text-purple-300">Export Character</h3>
-                <p className="text-purple-300 mb-4 text-sm">Download your character as JSON</p>
-                <button onClick={() => { const dataStr = JSON.stringify(character, null, 2); const dataBlob = new Blob([dataStr], { type: 'application/json' }); const url = URL.createObjectURL(dataBlob); const link = document.createElement('a'); link.href = url; link.download = `${character.name.replace(/\s+/g, '_')}_character.json`; link.click(); }} className="bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg">📥 Download</button>
+                <h3 className="text-xl font-bold mb-3 text-purple-300">Download Your Character</h3>
+                <p className="text-purple-300 mb-4 text-sm">Export your character as a JSON file to share or backup</p>
+                <button onClick={() => { const dataStr = JSON.stringify(character, null, 2); const dataBlob = new Blob([dataStr], { type: 'application/json' }); const url = URL.createObjectURL(dataBlob); const link = document.createElement('a'); link.href = url; link.download = `${character.name.replace(/\s+/g, '_')}_character.json`; link.click(); }} className="bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg">📥 Download JSON</button>
               </div>
             </div>
           )}
 
-          {/* TAB 7: WHAT YA MAKE? */}
+          {/* TAB 6: CUSTOM (was WHAT YA MAKE?) */}
           {activeTab === 6 && (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-purple-300">What Ya Make?</h2>
+              <h2 className="text-2xl font-bold text-purple-300">Custom Content</h2>
               <div className="bg-neutral-900 border border-purple-800 rounded-xl p-6 text-center">
-                <h3 className="text-xl font-bold mb-3 text-purple-300">Custom Content</h3>
-                <p className="text-purple-300 mb-4 text-sm">Create homebrew content</p>
+                <h3 className="text-xl font-bold mb-3 text-purple-300">Homebrew Creator</h3>
+                <p className="text-purple-300 mb-4 text-sm">Create custom races, classes, and items</p>
                 <div className="grid md:grid-cols-2 gap-3 max-w-md mx-auto">
                   {['Race','Class','Background','Item'].map(item => (
                     <button key={item} className="bg-purple-800 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all border border-purple-600 text-sm">Create {item}</button>
