@@ -3,6 +3,7 @@ import { useCharacterStore } from './state/store'
 import { raceData, appearanceOptions, inchesToFeetInches } from './data/raceData'
 import { abilityLabels, asiLevels, pointBuyCosts, pointBuyTotal, standardArray, pointBuyMin, pointBuyMax } from './data/dndRules'
 import { skills, skillsByAbility, classSkillProficiencies, backgroundSkills } from './data/skillsData'
+import { getAllRaces, getRaceData } from './data/raceData'
 
 function App() {
   const [activeTab, setActiveTab] = useState(0)
@@ -32,7 +33,6 @@ function App() {
     rollBreakdowns,
   } = useCharacterStore()
 
-  // RENAMED TABS - Clearer, more intuitive names
   const mainTabs = [
     { name: 'CHARACTER', icon: '👤', color: 'bg-purple-600' },
     { name: 'CLASS', icon: '⚔️', color: 'bg-red-600' },
@@ -188,7 +188,7 @@ function App() {
               ))}
             </div>
 
-            {/* Main Tab Navigation - RENAMED */}
+            {/* Main Tab Navigation */}
             <div className="grid grid-cols-3 md:grid-cols-7 gap-1.5">
               {mainTabs.map((tab, index) => (
                 <button key={tab.name} onClick={() => setActiveTab(index)} className={`py-2 px-1 rounded-lg font-semibold transition-all text-[10px] md:text-xs border ${activeTab === index ? `${tab.color} text-white font-bold shadow-lg border-white/30` : 'bg-neutral-900 text-purple-300 hover:bg-neutral-800 hover:text-white border-purple-800'}`}>
@@ -201,7 +201,7 @@ function App() {
         </header>
 
         <main className="max-w-6xl mx-auto px-4 py-6">
-          {/* TAB 0: CHARACTER (was WHO YOU ARE?) */}
+          {/* TAB 0: CHARACTER */}
           {activeTab === 0 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-purple-300">Character Basics</h2>
@@ -211,10 +211,38 @@ function App() {
                   <div className="space-y-3">
                     <div>
                       <label className="block text-xs font-medium mb-1.5 text-purple-300">Race</label>
-                      <select value={character.race} onChange={(e) => updateCharacter('race', e.target.value)} className="w-full bg-black border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500 transition-all">
+                      <select 
+                        value={character.race} 
+                        onChange={(e) => updateCharacter('race', e.target.value)} 
+                        className="w-full bg-black border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500 transition-all"
+                      >
                         <option value="">Select Race...</option>
-                        {Object.entries(raceData).map(([key, data]) => (<option key={key} value={key}>{data.name}</option>))}
+                        {getAllRaces().map(race => (
+                          <option key={race.key} value={race.key}>
+                            {race.isSubrace ? `  └ ${race.name}` : race.name}
+                          </option>
+                        ))}
                       </select>
+                      
+                      {/* Race Description */}
+                      {character.race && (
+                        <div className="mt-2 p-3 bg-neutral-950 border border-purple-800 rounded-lg">
+                          <h4 className="text-sm font-bold text-purple-300 mb-1">
+                            {getRaceData(character.race).name}
+                          </h4>
+                          <p className="text-xs text-purple-400 mb-2">
+                            {getRaceData(character.race).description}
+                          </p>
+                          <div className="text-xs text-purple-300">
+                            <div className="font-semibold mb-1">Features:</div>
+                            <ul className="list-disc list-inside space-y-0.5">
+                              {getRaceData(character.race).features?.map((feature, i) => (
+                                <li key={i} className="text-[10px]">{feature}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs font-medium mb-1.5 text-purple-300">Alignment</label>
@@ -238,7 +266,7 @@ function App() {
             </div>
           )}
 
-          {/* TAB 1: CLASS (was WHAT YOU DO?) */}
+          {/* TAB 1: CLASS */}
           {activeTab === 1 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-purple-300">Class & Background</h2>
@@ -252,7 +280,7 @@ function App() {
             </div>
           )}
 
-          {/* TAB 2: ABILITIES (was WHAT YOU GOT?) */}
+          {/* TAB 2: ABILITIES */}
           {activeTab === 2 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-purple-300">Ability Scores</h2>
@@ -365,7 +393,7 @@ function App() {
             </div>
           )}
 
-          {/* TAB 3: SKILLS (unchanged) */}
+          {/* TAB 3: SKILLS */}
           {activeTab === 3 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-purple-300">Skills & Proficiencies</h2>
@@ -459,7 +487,7 @@ function App() {
             </div>
           )}
 
-          {/* TAB 4: DETAILS (was WHAT YOU BUILT OF?) */}
+          {/* TAB 4: DETAILS */}
           {activeTab === 4 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-purple-300">Character Details</h2>
@@ -474,7 +502,7 @@ function App() {
             </div>
           )}
 
-          {/* TAB 5: EXPORT (was WHAT YA SHARE?) */}
+          {/* TAB 5: EXPORT */}
           {activeTab === 5 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-purple-300">Export Character</h2>
@@ -486,7 +514,7 @@ function App() {
             </div>
           )}
 
-          {/* TAB 6: CUSTOM (was WHAT YA MAKE?) */}
+          {/* TAB 6: CUSTOM */}
           {activeTab === 6 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-purple-300">Custom Content</h2>
