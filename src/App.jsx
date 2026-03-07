@@ -60,30 +60,37 @@ function App() {
     return result
   }
 
-  // Get available scores for Standard Array dropdowns
+  // Get available scores for Standard Array dropdowns - FIXED VERSION
   const getAvailableScores = (currentAbility) => {
-    const usedScores = []
+    // Get all scores currently assigned to OTHER abilities
+    const otherScores = []
     Object.entries(character.abilities).forEach(([ability, score]) => {
-      if (ability !== currentAbility) {
-        usedScores.push(score)
+      if (ability !== currentAbility && score !== null && score !== undefined && score !== 0) {
+        otherScores.push(score)
       }
     })
     
-    // Start with standard array and remove used scores
+    // Start with standard array
     let available = [...standardArray]
-    usedScores.forEach(score => {
-      const index = available.indexOf(score)
+    
+    // Remove scores that are used by OTHER abilities
+    otherScores.forEach(usedScore => {
+      const index = available.indexOf(usedScore)
       if (index > -1) {
         available.splice(index, 1)
       }
     })
     
-    // Always include current ability's score if it's from standard array
-    if (standardArray.includes(character.abilities[currentAbility])) {
-      available.push(character.abilities[currentAbility])
+    // Always include current ability's score if it's valid
+    const currentScore = character.abilities[currentAbility]
+    if (currentScore && standardArray.includes(currentScore)) {
+      available.push(currentScore)
     }
     
-    return available.sort((a, b) => b - a)
+    // Remove duplicates and sort descending
+    available = [...new Set(available)].sort((a, b) => b - a)
+    
+    return available
   }
 
   if (!character) {
@@ -271,15 +278,16 @@ function App() {
                         <div key={ability} className="bg-black p-3 rounded-lg border border-purple-800">
                           <label className="block text-xs font-medium mb-1 uppercase text-purple-400">{abilityLabels[ability] || ability}</label>
                           <select
-                            value={score}
+                            value={score || ''}
                             onChange={(e) => updateAbility(ability, e.target.value)}
                             className="w-full bg-neutral-950 border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-center text-xl font-bold mb-1 focus:outline-none focus:border-purple-500 transition-all"
                           >
+                            <option value="">Select...</option>
                             {availableScores.map(s => (
                               <option key={s} value={s}>{s}</option>
                             ))}
                           </select>
-                          <div className="text-center text-sm font-bold text-purple-300">Mod: {(score - 10) >= 0 ? '+' : ''}{Math.floor((score - 10) / 2)}</div>
+                          <div className="text-center text-sm font-bold text-purple-300">Mod: {score ? ((score - 10) >= 0 ? '+' : '') + Math.floor((score - 10) / 2) : '-'}</div>
                           <button onClick={() => handleRoll(() => rollSavingThrow(ability), `${abilityLabels[ability]} Save`)} className="mt-2 w-full bg-purple-800 hover:bg-purple-700 text-white text-xs py-1.5 px-3 rounded transition-all">Roll Save</button>
                         </div>
                       )
