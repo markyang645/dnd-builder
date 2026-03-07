@@ -11,6 +11,7 @@ import {
   rollSkillCheck, rollSavingThrow, rollAttack, rollDeathSave,
   generateAbilityScores, formatRoll, rollDie,
 } from '../lib/dice'
+import { skills, classSkillProficiencies, backgroundSkills } from '../data/skillsData'
 
 const genId = () => Math.random().toString(36).slice(2)
 
@@ -63,7 +64,7 @@ export const useCharacterStore = create(
           personalityTraits: '', ideals: '', bonds: '', flaws: '', backstory: '',
           armorType: 'none', hasShield: false, weapons: [], equipment: [],
           statMethod: statMethod,
-          activeStatTab: statMethod, // ✅ STORE IT HERE
+          activeStatTab: statMethod,
           createdAt: Date.now(), updatedAt: Date.now(),
         }
         
@@ -100,13 +101,12 @@ export const useCharacterStore = create(
           timestamp: Date.now(),
         }))
       }
-      // pointbuy keeps current abilities
       
       const updated = { 
         ...state.character, 
         abilities, 
         statMethod: tab,
-        activeStatTab: tab, // ✅ UPDATE IT HERE
+        activeStatTab: tab,
       }
       
       return {
@@ -120,7 +120,7 @@ export const useCharacterStore = create(
       set((state) => {
         if (!state.character) return state
         const updated = { ...state.character, [key]: value, updatedAt: Date.now() }
-        if (['race', 'class', 'level', 'abilities', 'armorType', 'hasShield'].includes(key)) {
+        if (['race', 'class', 'level', 'abilities', 'armorType', 'hasShield', 'background'].includes(key)) {
           return { character: get().calculateDerivedStats(updated) }
         }
         return { character: updated }
@@ -209,6 +209,51 @@ export const useCharacterStore = create(
       return { ...char, modifiers, savingThrows, proficiencyBonus: profBonus, hitPoints, maxHitPoints, hpHistory, armorClass: ac, speed, initiative, spellSaveDC, attackBonus, carryingCapacity, pushDragLift, asiAvailable }
     },
 
+    // Toggle skill proficiency
+    toggleSkillProficiency: (skillKey) =>
+      set((state) => {
+        if (!state.character) return state
+        
+        const currentProficiencies = state.character.skillProficiencies || []
+        const isProficient = currentProficiencies.includes(skillKey)
+        
+        let newProficiencies
+        if (isProficient) {
+          newProficiencies = currentProficiencies.filter(s => s !== skillKey)
+        } else {
+          const classSkills = classSkillProficiencies[state.character.class]
+          const maxSkills = classSkills ? classSkills.count : 0
+          
+          if (currentProficiencies.length < maxSkills) {
+            newProficiencies = [...currentProficiencies, skillKey]
+          } else {
+            return state
+          }
+        }
+        
+        return {
+          character: {
+            ...state.character,
+            skillProficiencies: newProficiencies,
+          }
+        }
+      }),
+
+    // Get skill modifier
+    getSkillModifier: (skillKey) => {
+      const state = get()
+      if (!state.character) return 0
+      
+      const skill = skills[skillKey]
+      if (!skill) return 0
+      
+      const abilityMod = state.character.modifiers?.[skill.ability] || 0
+      const isProficient = state.character.skillProficiencies?.includes(skillKey)
+      const profBonus = state.character.proficiencyBonus || 2
+      
+      return abilityMod + (isProficient ? profBonus : 0)
+    },
+
     rollAbilityScores: () =>
       set((state) => {
         if (!state.character) return state
@@ -234,6 +279,32 @@ export const useCharacterStore = create(
       const dexMod = state.character.modifiers?.dex || getModifier(state.character.abilities?.dex || 10)
       const result = rollD20(dexMod)
       const rollEntry = { type: 'initiative', result: formatRoll(result), total: result.total, timestamp: Date.now() }
+      set((prev) => ({ rollHistory: [...(prev.rollHistory || []), rollEntry] }))
+      return result
+    },
+
+    rollSkillCheck: (skillKey) => {
+      const state = get()
+      if (!state.character) return null
+      
+      const skill = skills[skillKey]
+      if (!skill) return null
+      
+      const abilityMod = state.character.modifiers?.[skill.ability] || 0
+      const profBonus = state.character.proficiencyBonus || 2
+      const isProficient = state.character.skillProficiencies?.includes(skillKey)
+      const totalMod = abilityMod + (isProficient ? profBonus : 0)
+      
+      const result = rollD20(totalMod)
+      const rollEntry = { 
+        type: 'skill-check', 
+        skill: skill.name,
+        ability: skill.ability,
+        result: formatRoll(result), 
+        total: result.total, 
+        proficient: isProficient,
+        timestamp: Date.now() 
+      }
       set((prev) => ({ rollHistory: [...(prev.rollHistory || []), rollEntry] }))
       return result
     },
