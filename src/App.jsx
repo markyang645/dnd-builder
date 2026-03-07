@@ -48,7 +48,6 @@ function App() {
   const heightValue = character?.height || currentRace.heightRange.min
   const weightValue = character?.weight || currentRace.weightRange.min
   
-  // Calculate point buy cost LIVE
   const pointBuyCost = character ? getPointBuyCost(character.abilities) : 0
   const pointBuyValid = character ? validatePointBuy(character.abilities) : true
   const pointBuyPercent = Math.min(100, (pointBuyCost / pointBuyTotal) * 100)
@@ -224,38 +223,48 @@ function App() {
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-dark-purple-300">What You Got?</h2>
               
-              {/* Standard Array */}
+              {/* Standard Array Tab */}
               {character.activeStatTab === 'standard' && (
                 <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-dark-purple-300">📋 Standard Array</h3>
-                  <p className="text-dark-purple-400 text-sm mb-4">Assign these scores: 15, 14, 13, 12, 10, 8</p>
+                  <p className="text-dark-purple-400 text-sm mb-4">Assign these scores to your abilities: 15, 14, 13, 12, 10, 8</p>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {[15, 14, 13, 12, 10, 8].map(score => (
                       <span key={score} className="bg-dark-purple-950 px-3 py-1 rounded-lg border border-dark-purple-700 text-white font-bold">{score}</span>
                     ))}
                   </div>
+                  
+                  {/* Ability Score Inputs */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4">
+                    {Object.entries(character.abilities).map(([ability, score]) => (
+                      <div key={ability} className="bg-dark-purple-950 p-3 rounded-lg border border-dark-purple-700">
+                        <label className="block text-xs font-medium mb-1 uppercase text-dark-purple-400">{abilityLabels[ability] || ability}</label>
+                        <input type="number" min="1" max="20" value={score} onChange={(e) => updateAbility(ability, e.target.value)} className="w-full bg-dark-purple-900 border-2 border-dark-purple-700 rounded-lg px-3 py-2 text-white text-center text-xl font-bold mb-1 focus:outline-none focus:border-dark-purple-500 transition-all" />
+                        <div className="text-center text-sm font-bold text-dark-purple-300">Mod: {(score - 10) >= 0 ? '+' : ''}{Math.floor((score - 10) / 2)}</div>
+                        <button onClick={() => handleRoll(() => rollSavingThrow(ability), `${abilityLabels[ability]} Save`)} className="mt-2 w-full bg-dark-purple-800 hover:bg-dark-purple-700 text-white text-xs py-1.5 px-3 rounded transition-all">Roll Save</button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {/* Point Buy - WITH PROGRESS BAR */}
+              {/* Point Buy Tab - WITH COUNTER AT BOTTOM */}
               {character.activeStatTab === 'pointbuy' && (
                 <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-dark-purple-300">💰 Point Buy</h3>
                   <div className={`p-4 rounded-lg mb-4 ${pointBuyValid ? 'bg-green-900/50 border border-green-700' : 'bg-red-900/50 border border-red-700'}`}>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-white font-bold text-lg">Points Spent: {pointBuyCost} / {pointBuyTotal}</span>
+                      <span className="text-white font-bold text-lg">Points Spent</span>
                       <span className={`text-lg font-bold ${pointBuyValid ? 'text-green-400' : 'text-red-400'}`}>{pointBuyValid ? '✅ Valid' : '❌ Over Budget'}</span>
                     </div>
-                    {/* PROGRESS BAR */}
                     <div className="w-full bg-dark-purple-950 rounded-full h-4 border border-dark-purple-700">
-                      <div 
-                        className={`h-4 rounded-full transition-all duration-300 ${pointBuyValid ? 'bg-gradient-to-r from-green-600 to-green-400' : 'bg-gradient-to-r from-red-600 to-red-400'}`} 
-                        style={{ width: `${pointBuyPercent}%` }}
-                      ></div>
+                      <div className={`h-4 rounded-full transition-all duration-300 ${pointBuyValid ? 'bg-gradient-to-r from-green-600 to-green-400' : 'bg-gradient-to-r from-red-600 to-red-400'}`} style={{ width: `${pointBuyPercent}%` }}></div>
                     </div>
                     <p className="text-xs text-dark-purple-400 mt-2 text-center">{pointBuyPercent.toFixed(0)}% of budget used</p>
                   </div>
-                  <div className="grid grid-cols-4 md:grid-cols-8 gap-2 text-center text-xs">
+                  
+                  {/* Cost Table */}
+                  <div className="grid grid-cols-4 md:grid-cols-8 gap-2 text-center text-xs mb-4">
                     {Object.entries(pointBuyCosts).map(([score, cost]) => (
                       <div key={score} className={`bg-dark-purple-950 p-2 rounded border ${parseInt(score) === 14 || parseInt(score) === 15 ? 'border-yellow-600' : 'border-dark-purple-700'}`}>
                         <div className="text-dark-purple-400">Score {score}</div>
@@ -263,21 +272,43 @@ function App() {
                       </div>
                     ))}
                   </div>
+                  
+                  {/* Ability Score Inputs */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {Object.entries(character.abilities).map(([ability, score]) => (
+                      <div key={ability} className="bg-dark-purple-950 p-3 rounded-lg border border-dark-purple-700">
+                        <label className="block text-xs font-medium mb-1 uppercase text-dark-purple-400">{abilityLabels[ability] || ability}</label>
+                        <input type="number" min={pointBuyMin} max={pointBuyMax} value={score} onChange={(e) => updateAbility(ability, e.target.value)} className="w-full bg-dark-purple-900 border-2 border-dark-purple-700 rounded-lg px-3 py-2 text-white text-center text-xl font-bold mb-1 focus:outline-none focus:border-dark-purple-500 transition-all" />
+                        <div className="text-center text-sm font-bold text-dark-purple-300">Mod: {(score - 10) >= 0 ? '+' : ''}{Math.floor((score - 10) / 2)}</div>
+                        <div className="text-center text-[10px] text-dark-purple-400">Cost: {pointBuyCosts[score] || 0} pts</div>
+                        <button onClick={() => handleRoll(() => rollSavingThrow(ability), `${abilityLabels[ability]} Save`)} className="mt-2 w-full bg-dark-purple-800 hover:bg-dark-purple-700 text-white text-xs py-1.5 px-3 rounded transition-all">Roll Save</button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* POINT COUNTER AT BOTTOM */}
+                  <div className={`mt-4 p-4 rounded-lg border-2 ${pointBuyValid ? 'bg-green-900/30 border-green-600' : 'bg-red-900/30 border-red-600'}`}>
+                    <div className="flex justify-between items-center">
+                      <span className="text-white font-bold text-xl">Points Remaining</span>
+                      <span className={`text-3xl font-bold ${pointBuyValid ? 'text-green-400' : 'text-red-400'}`}>{pointBuyTotal - pointBuyCost} / {pointBuyTotal}</span>
+                    </div>
+                    <div className="w-full bg-dark-purple-950 rounded-full h-3 mt-2">
+                      <div className={`h-3 rounded-full transition-all ${pointBuyValid ? 'bg-green-500' : 'bg-red-500'}`} style={{ width: `${100 - pointBuyPercent}%` }}></div>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              {/* Roll Stats - WITH BREAKDOWNS */}
+              {/* Roll Stats Tab */}
               {character.activeStatTab === 'roll' && (
                 <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-dark-purple-300">🎲 Roll Stats (4d6 drop lowest)</h3>
                   <p className="text-dark-purple-400 text-sm mb-4">Roll 4 six-sided dice, drop the lowest, sum the remaining 3.</p>
-                  <button onClick={() => handleRoll(rollAbilityScores, 'Ability Scores')} className="bg-dark-purple-600 hover:bg-dark-purple-500 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg mb-4">
-                    🎲 Roll New Stats
-                  </button>
+                  <button onClick={() => handleRoll(rollAbilityScores, 'Ability Scores')} className="bg-dark-purple-600 hover:bg-dark-purple-500 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg mb-4">🎲 Roll New Stats</button>
                   
-                  {/* SHOW INDIVIDUAL ROLL BREAKDOWNS */}
+                  {/* Roll Breakdowns */}
                   {rollBreakdowns && Object.keys(rollBreakdowns).length > 0 && (
-                    <div className="space-y-3">
+                    <div className="space-y-3 mb-4">
                       <h4 className="text-sm font-bold text-dark-purple-300">Roll Breakdown:</h4>
                       {Object.entries(rollBreakdowns).map(([ability, breakdown]) => (
                         <div key={ability} className="bg-dark-purple-950 p-3 rounded-lg border border-dark-purple-700">
@@ -290,35 +321,21 @@ function App() {
                       ))}
                     </div>
                   )}
+                  
+                  {/* Ability Score Inputs */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {Object.entries(character.abilities).map(([ability, score]) => (
+                      <div key={ability} className="bg-dark-purple-950 p-3 rounded-lg border border-dark-purple-700">
+                        <label className="block text-xs font-medium mb-1 uppercase text-dark-purple-400">{abilityLabels[ability] || ability}</label>
+                        <input type="number" min="1" max="20" value={score} onChange={(e) => updateAbility(ability, e.target.value)} className="w-full bg-dark-purple-900 border-2 border-dark-purple-700 rounded-lg px-3 py-2 text-white text-center text-xl font-bold mb-1 focus:outline-none focus:border-dark-purple-500 transition-all" />
+                        <div className="text-center text-sm font-bold text-dark-purple-300">Mod: {(score - 10) >= 0 ? '+' : ''}{Math.floor((score - 10) / 2)}</div>
+                        {rollBreakdowns[ability] && (<div className="text-[10px] text-dark-purple-400 mt-1 font-mono truncate" title={rollBreakdowns[ability]}>{rollBreakdowns[ability]}</div>)}
+                        <button onClick={() => handleRoll(() => rollSavingThrow(ability), `${abilityLabels[ability]} Save`)} className="mt-2 w-full bg-dark-purple-800 hover:bg-dark-purple-700 text-white text-xs py-1.5 px-3 rounded transition-all">Roll Save</button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
-
-              {/* Ability Inputs */}
-              <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-4">
-                <h3 className="text-lg font-bold mb-4 text-dark-purple-300">Ability Scores</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {Object.entries(character.abilities).map(([ability, score]) => (
-                    <div key={ability} className="bg-dark-purple-950 p-3 rounded-lg border border-dark-purple-700">
-                      <label className="block text-xs font-medium mb-1 uppercase text-dark-purple-400">{abilityLabels[ability] || ability}</label>
-                      <input 
-                        type="number" 
-                        min={character.activeStatTab === 'pointbuy' ? pointBuyMin : 1} 
-                        max={character.activeStatTab === 'pointbuy' ? pointBuyMax : 20} 
-                        value={score} 
-                        onChange={(e) => updateAbility(ability, e.target.value)} 
-                        className="w-full bg-dark-purple-900 border-2 border-dark-purple-700 rounded-lg px-3 py-2 text-white text-center text-xl font-bold mb-1 focus:outline-none focus:border-dark-purple-500 transition-all" 
-                      />
-                      <div className="text-center text-sm font-bold text-dark-purple-300">Mod: {(score - 10) >= 0 ? '+' : ''}{Math.floor((score - 10) / 2)}</div>
-                      {character.activeStatTab === 'roll' && rollBreakdowns[ability] && (
-                        <div className="text-[10px] text-dark-purple-400 mt-1 font-mono truncate" title={rollBreakdowns[ability]}>
-                          {rollBreakdowns[ability]}
-                        </div>
-                      )}
-                      <button onClick={() => handleRoll(() => rollSavingThrow(ability), `${abilityLabels[ability]} Save`)} className="mt-2 w-full bg-dark-purple-800 hover:bg-dark-purple-700 text-white text-xs py-1.5 px-3 rounded transition-all">Roll Save</button>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           )}
 
@@ -343,6 +360,7 @@ function App() {
               <h2 className="text-2xl font-bold text-dark-purple-300">What Ya Share?</h2>
               <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 text-center">
                 <h3 className="text-xl font-bold mb-3 text-dark-purple-300">Export Character</h3>
+                <p className="text-dark-purple-300 mb-4 text-sm">Download your character as JSON</p>
                 <button onClick={() => { const dataStr = JSON.stringify(character, null, 2); const dataBlob = new Blob([dataStr], { type: 'application/json' }); const url = URL.createObjectURL(dataBlob); const link = document.createElement('a'); link.href = url; link.download = `${character.name.replace(/\s+/g, '_')}_character.json`; link.click(); }} className="bg-dark-purple-600 hover:bg-dark-purple-500 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg">📥 Download</button>
               </div>
             </div>
@@ -354,6 +372,7 @@ function App() {
               <h2 className="text-2xl font-bold text-dark-purple-300">What Ya Make?</h2>
               <div className="bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 text-center">
                 <h3 className="text-xl font-bold mb-3 text-dark-purple-300">Custom Content</h3>
+                <p className="text-dark-purple-300 mb-4 text-sm">Create homebrew content</p>
                 <div className="grid md:grid-cols-2 gap-3 max-w-md mx-auto">
                   {['Race','Class','Background','Item'].map(item => (
                     <button key={item} className="bg-dark-purple-800 hover:bg-dark-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all border border-dark-purple-600 text-sm">Create {item}</button>
