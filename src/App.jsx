@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useCharacterStore } from './state/store'
 import { raceData, appearanceOptions, inchesToFeetInches } from './data/raceData'
 import { abilityLabels, asiLevels, pointBuyCosts, pointBuyTotal, standardArray, pointBuyMin, pointBuyMax } from './data/dndRules'
+import { skills, skillsByAbility, classSkillProficiencies, backgroundSkills } from './data/skillsData'
 
 function App() {
   const [activeTab, setActiveTab] = useState(0)
@@ -21,6 +22,9 @@ function App() {
     rollInitiative,
     rollSavingThrow,
     rollLevelUpHP,
+    rollSkillCheck,
+    toggleSkillProficiency,
+    getSkillModifier,
     rollHistory,
     clearRollHistory,
     validationErrors,
@@ -32,8 +36,9 @@ function App() {
     { name: 'WHO YOU ARE?', icon: '👤', color: 'bg-purple-600' },
     { name: 'WHAT YOU DO?', icon: '⚔️', color: 'bg-red-600' },
     { name: 'WHAT YOU GOT?', icon: '🎒', color: 'bg-yellow-500' },
+    { name: 'SKILLS', icon: '🎯', color: 'bg-blue-500' },
     { name: 'WHAT YOU BUILT OF?', icon: '📖', color: 'bg-green-600' },
-    { name: 'WHAT YA SHARE?', icon: '📤', color: 'bg-blue-600' },
+    { name: 'WHAT YA SHARE?', icon: '📤', color: 'bg-sky-600' },
     { name: 'WHAT YA MAKE?', icon: '🛠️', color: 'bg-orange-600' },
   ]
 
@@ -60,9 +65,7 @@ function App() {
     return result
   }
 
-  // Get available scores for Standard Array dropdowns - FIXED VERSION
   const getAvailableScores = (currentAbility) => {
-    // Get all scores currently assigned to OTHER abilities
     const otherScores = []
     Object.entries(character.abilities).forEach(([ability, score]) => {
       if (ability !== currentAbility && score !== null && score !== undefined && score !== 0) {
@@ -70,10 +73,7 @@ function App() {
       }
     })
     
-    // Start with standard array
     let available = [...standardArray]
-    
-    // Remove scores that are used by OTHER abilities
     otherScores.forEach(usedScore => {
       const index = available.indexOf(usedScore)
       if (index > -1) {
@@ -81,13 +81,11 @@ function App() {
       }
     })
     
-    // Always include current ability's score if it's valid
     const currentScore = character.abilities[currentAbility]
     if (currentScore && standardArray.includes(currentScore)) {
       available.push(currentScore)
     }
     
-    // Remove duplicates and sort descending
     available = [...new Set(available)].sort((a, b) => b - a)
     
     return available
@@ -166,7 +164,7 @@ function App() {
       {/* Main Content */}
       <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-72' : 'ml-0'}`}>
         <header className="bg-neutral-900 border-b border-purple-800 sticky top-0 z-30">
-          <div className="max-w-5xl mx-auto px-4 py-3">
+          <div className="max-w-6xl mx-auto px-4 py-3">
             <div className="flex items-center justify-between mb-3">
               <button onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-purple-800 hover:bg-purple-700 text-white font-semibold py-1.5 px-3 rounded-lg transition-all border border-purple-600 text-sm">{sidebarOpen ? '◀ Hide' : '▶ Show'}</button>
               <button onClick={() => createCharacter('New Character', 'pointbuy')} className="bg-purple-800 hover:bg-purple-700 text-white font-semibold py-1.5 px-3 rounded-lg transition-all border border-purple-600 text-sm">+ New</button>
@@ -190,7 +188,7 @@ function App() {
             </div>
 
             {/* Main Tab Navigation */}
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5">
+            <div className="grid grid-cols-3 md:grid-cols-7 gap-1.5">
               {mainTabs.map((tab, index) => (
                 <button key={tab.name} onClick={() => setActiveTab(index)} className={`py-2 px-1 rounded-lg font-semibold transition-all text-[10px] md:text-xs border ${activeTab === index ? `${tab.color} text-white font-bold shadow-lg border-white/30` : 'bg-neutral-900 text-purple-300 hover:bg-neutral-800 hover:text-white border-purple-800'}`}>
                   <span className="block text-base mb-0.5">{tab.icon}</span>
@@ -201,7 +199,7 @@ function App() {
           </div>
         </header>
 
-        <main className="max-w-5xl mx-auto px-4 py-6">
+        <main className="max-w-6xl mx-auto px-4 py-6">
           {/* TAB 1: WHO YOU ARE? */}
           {activeTab === 0 && (
             <div className="space-y-4">
@@ -253,39 +251,30 @@ function App() {
             </div>
           )}
 
-          {/* TAB 3: WHAT YOU GOT? - STAT METHODS */}
+          {/* TAB 3: WHAT YOU GOT? */}
           {activeTab === 2 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-purple-300">What You Got?</h2>
               <div className="text-purple-400 text-sm mb-4">Current Method: <span className="text-white font-bold">{currentStatTab === 'standard' ? '📋 Standard Array' : currentStatTab === 'pointbuy' ? '💰 Point Buy' : '🎲 Roll'}</span></div>
               
-              {/* Standard Array Tab - WITH DROPDOWNS */}
               {currentStatTab === 'standard' && (
                 <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-purple-300">📋 Standard Array</h3>
-                  <p className="text-purple-400 text-sm mb-4">Assign these scores to your abilities: 15, 14, 13, 12, 10, 8</p>
+                  <p className="text-purple-400 text-sm mb-4">Assign these scores: 15, 14, 13, 12, 10, 8</p>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {[15, 14, 13, 12, 10, 8].map(score => (
                       <span key={score} className="bg-black px-3 py-1 rounded-lg border border-purple-800 text-white font-bold">{score}</span>
                     ))}
                   </div>
-                  
-                  {/* Ability Score Dropdowns */}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4">
                     {Object.entries(character.abilities).map(([ability, score]) => {
                       const availableScores = getAvailableScores(ability)
                       return (
                         <div key={ability} className="bg-black p-3 rounded-lg border border-purple-800">
                           <label className="block text-xs font-medium mb-1 uppercase text-purple-400">{abilityLabels[ability] || ability}</label>
-                          <select
-                            value={score || ''}
-                            onChange={(e) => updateAbility(ability, e.target.value)}
-                            className="w-full bg-neutral-950 border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-center text-xl font-bold mb-1 focus:outline-none focus:border-purple-500 transition-all"
-                          >
+                          <select value={score || ''} onChange={(e) => updateAbility(ability, e.target.value)} className="w-full bg-neutral-950 border-2 border-purple-800 rounded-lg px-3 py-2 text-white text-center text-xl font-bold mb-1 focus:outline-none focus:border-purple-500 transition-all">
                             <option value="">Select...</option>
-                            {availableScores.map(s => (
-                              <option key={s} value={s}>{s}</option>
-                            ))}
+                            {availableScores.map(s => (<option key={s} value={s}>{s}</option>))}
                           </select>
                           <div className="text-center text-sm font-bold text-purple-300">Mod: {score ? ((score - 10) >= 0 ? '+' : '') + Math.floor((score - 10) / 2) : '-'}</div>
                           <button onClick={() => handleRoll(() => rollSavingThrow(ability), `${abilityLabels[ability]} Save`)} className="mt-2 w-full bg-purple-800 hover:bg-purple-700 text-white text-xs py-1.5 px-3 rounded transition-all">Roll Save</button>
@@ -296,7 +285,6 @@ function App() {
                 </div>
               )}
 
-              {/* Point Buy Tab */}
               {currentStatTab === 'pointbuy' && (
                 <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-purple-300">💰 Point Buy</h3>
@@ -310,8 +298,6 @@ function App() {
                     </div>
                     <p className="text-xs text-purple-400 mt-2 text-center">{pointBuyPercent.toFixed(0)}% of budget used</p>
                   </div>
-                  
-                  {/* Cost Table */}
                   <div className="grid grid-cols-4 md:grid-cols-8 gap-2 text-center text-xs mb-4">
                     {Object.entries(pointBuyCosts).map(([score, cost]) => (
                       <div key={score} className={`bg-black p-2 rounded border ${parseInt(score) === 14 || parseInt(score) === 15 ? 'border-yellow-600' : 'border-purple-800'}`}>
@@ -320,8 +306,6 @@ function App() {
                       </div>
                     ))}
                   </div>
-                  
-                  {/* Ability Score Inputs */}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {Object.entries(character.abilities).map(([ability, score]) => (
                       <div key={ability} className="bg-black p-3 rounded-lg border border-purple-800">
@@ -333,8 +317,6 @@ function App() {
                       </div>
                     ))}
                   </div>
-                  
-                  {/* POINT COUNTER AT BOTTOM */}
                   <div className={`mt-4 p-4 rounded-lg border-2 ${pointBuyValid ? 'bg-green-900/30 border-green-600' : 'bg-red-900/30 border-red-600'}`}>
                     <div className="flex justify-between items-center">
                       <span className="text-white font-bold text-xl">Points Remaining</span>
@@ -347,14 +329,11 @@ function App() {
                 </div>
               )}
 
-              {/* Roll Stats Tab */}
               {currentStatTab === 'roll' && (
                 <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-purple-300">🎲 Roll Stats (4d6 drop lowest)</h3>
                   <p className="text-purple-400 text-sm mb-4">Roll 4 six-sided dice, drop the lowest, sum the remaining 3.</p>
                   <button onClick={() => handleRoll(rollAbilityScores, 'Ability Scores')} className="bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg mb-4">🎲 Roll New Stats</button>
-                  
-                  {/* Roll Breakdowns */}
                   {rollBreakdowns && Object.keys(rollBreakdowns).length > 0 && (
                     <div className="space-y-3 mb-4">
                       <h4 className="text-sm font-bold text-purple-300">Roll Breakdown:</h4>
@@ -369,8 +348,6 @@ function App() {
                       ))}
                     </div>
                   )}
-                  
-                  {/* Ability Score Inputs */}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {Object.entries(character.abilities).map(([ability, score]) => (
                       <div key={ability} className="bg-black p-3 rounded-lg border border-purple-800">
@@ -387,8 +364,105 @@ function App() {
             </div>
           )}
 
-          {/* TAB 4: WHAT YOU BUILT OF? */}
+          {/* TAB 4: SKILLS */}
           {activeTab === 3 && (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-purple-300">Skills</h2>
+              
+              {/* Class Skills Info */}
+              {character.class && (
+                <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <span className="text-purple-300">Skill Proficiencies</span>
+                      <p className="text-xs text-purple-400 mt-1">
+                        {classSkillProficiencies[character.class]?.from.includes('any') 
+                          ? 'Choose any skills' 
+                          : `Choose from ${classSkillProficiencies[character.class]?.from.length} available skills`}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-2xl font-bold text-white">
+                        {character.skillProficiencies?.length || 0} / {classSkillProficiencies[character.class]?.count || 0}
+                      </span>
+                      <p className="text-xs text-purple-400">Selected</p>
+                    </div>
+                  </div>
+                  <div className="w-full bg-black rounded-full h-3">
+                    <div 
+                      className="bg-purple-600 h-3 rounded-full transition-all"
+                      style={{ width: `${((character.skillProficiencies?.length || 0) / (classSkillProficiencies[character.class]?.count || 1)) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Skills by Ability */}
+              {Object.entries(skillsByAbility).map(([ability, skillKeys]) => (
+                <div key={ability} className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
+                  <h3 className="text-lg font-bold mb-3 text-purple-300 capitalize flex items-center gap-2">
+                    {abilityLabels[ability]} 
+                    <span className="text-sm text-purple-400">
+                      ({(character.modifiers?.[ability] || 0) >= 0 ? '+' : ''}{character.modifiers?.[ability] || 0})
+                    </span>
+                  </h3>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {skillKeys.map(skillKey => {
+                      const skill = skills[skillKey]
+                      const isProficient = character.skillProficiencies?.includes(skillKey)
+                      const modifier = getSkillModifier(skillKey)
+                      const classSkills = character.class ? classSkillProficiencies[character.class] : null
+                      const canSelect = !classSkills || classSkills.from.includes(skillKey) || classSkills.from.includes('any')
+                      const atMax = (character.skillProficiencies?.length || 0) >= (classSkills?.count || 0)
+                      
+                      return (
+                        <button
+                          key={skillKey}
+                          onClick={() => {
+                            if (canSelect || isProficient) {
+                              toggleSkillProficiency(skillKey)
+                            }
+                          }}
+                          disabled={!canSelect && !isProficient}
+                          className={`p-3 rounded-lg border transition-all text-left ${
+                            isProficient
+                              ? 'bg-purple-900/50 border-purple-500 shadow-lg shadow-purple-600/20'
+                              : !canSelect
+                              ? 'bg-neutral-950 border-neutral-800 opacity-50 cursor-not-allowed'
+                              : 'bg-black border-purple-800 hover:border-purple-600 hover:bg-neutral-900'
+                          }`}
+                        >
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-white font-semibold">{skill.name}</span>
+                            <span className={`text-lg font-bold ${isProficient ? 'text-purple-400' : 'text-purple-300'}`}>
+                              {modifier >= 0 ? '+' : ''}{modifier}
+                            </span>
+                          </div>
+                          <div className="text-xs text-purple-400">{skill.description}</div>
+                          {isProficient && <div className="text-xs text-purple-500 mt-1 flex items-center gap-1">✓ Proficient (+{character.proficiencyBonus || 2})</div>}
+                          {!canSelect && !isProficient && <div className="text-xs text-neutral-500 mt-1">Not available for {character.class}</div>}
+                          
+                          {/* Roll Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleRoll(() => rollSkillCheck(skillKey), `${skill.name} Check`)
+                            }}
+                            className="mt-2 w-full bg-purple-800 hover:bg-purple-700 text-white text-xs py-1.5 px-3 rounded transition-all"
+                          >
+                            🎲 Roll Check
+                          </button>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* TAB 5: WHAT YOU BUILT OF? */}
+          {activeTab === 4 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-purple-300">What You Built Of?</h2>
               <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4 space-y-3">
@@ -402,8 +476,8 @@ function App() {
             </div>
           )}
 
-          {/* TAB 5: WHAT YA SHARE? */}
-          {activeTab === 4 && (
+          {/* TAB 6: WHAT YA SHARE? */}
+          {activeTab === 5 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-purple-300">What Ya Share?</h2>
               <div className="bg-neutral-900 border border-purple-800 rounded-xl p-6 text-center">
@@ -414,8 +488,8 @@ function App() {
             </div>
           )}
 
-          {/* TAB 6: WHAT YA MAKE? */}
-          {activeTab === 5 && (
+          {/* TAB 7: WHAT YA MAKE? */}
+          {activeTab === 6 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-purple-300">What Ya Make?</h2>
               <div className="bg-neutral-900 border border-purple-800 rounded-xl p-6 text-center">
