@@ -52,6 +52,7 @@ function App() {
   const pointBuyValid = character ? validatePointBuy(character.abilities) : true
   const pointBuyPercent = Math.min(100, (pointBuyCost / pointBuyTotal) * 100)
 
+  // Get current stat tab from character or default to pointbuy
   const currentStatTab = character?.activeStatTab || 'pointbuy'
 
   const handleRoll = (rollFn, label) => {
@@ -139,16 +140,19 @@ function App() {
               <button onClick={() => createCharacter('New Character', 'pointbuy')} className="bg-purple-800 hover:bg-purple-700 text-white font-semibold py-1.5 px-3 rounded-lg transition-all border border-purple-600 text-sm">+ New</button>
             </div>
 
-            {/* Stat Method Tabs */}
+            {/* Stat Method Tabs - THESE NOW HIGHLIGHT PROPERLY */}
             <div className="flex gap-2 mb-3">
               {statTabs.map(tab => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveStatTab(tab.id)}
+                  onClick={() => {
+                    console.log('Clicking tab:', tab.id)
+                    setActiveStatTab(tab.id)
+                  }}
                   className={`flex-1 py-2 px-3 rounded-lg font-semibold transition-all text-xs border-2 ${
                     currentStatTab === tab.id
-                      ? 'bg-purple-600 border-white text-white'
-                      : 'bg-neutral-900 border-purple-800 text-purple-300 hover:border-purple-500'
+                      ? 'bg-purple-600 border-white text-white shadow-lg shadow-purple-600/50'
+                      : 'bg-neutral-900 border-purple-800 text-purple-300 hover:border-purple-500 hover:bg-neutral-800'
                   }`}
                 >
                   {tab.icon} {tab.name}
@@ -224,8 +228,9 @@ function App() {
           {activeTab === 2 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-purple-300">What You Got?</h2>
+              <div className="text-purple-400 text-sm mb-4">Current Method: <span className="text-white font-bold">{currentStatTab === 'standard' ? '📋 Standard Array' : currentStatTab === 'pointbuy' ? '💰 Point Buy' : '🎲 Roll'}</span></div>
               
-              {/* Standard Array Tab */}
+              {/* Standard Array Tab - ONLY SHOWS WHEN currentStatTab === 'standard' */}
               {currentStatTab === 'standard' && (
                 <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-purple-300">📋 Standard Array</h3>
@@ -250,7 +255,7 @@ function App() {
                 </div>
               )}
 
-              {/* Point Buy Tab */}
+              {/* Point Buy Tab - ONLY SHOWS WHEN currentStatTab === 'pointbuy' */}
               {currentStatTab === 'pointbuy' && (
                 <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-purple-300">💰 Point Buy</h3>
@@ -301,7 +306,7 @@ function App() {
                 </div>
               )}
 
-              {/* Roll Stats Tab */}
+              {/* Roll Stats Tab - ONLY SHOWS WHEN currentStatTab === 'roll' */}
               {currentStatTab === 'roll' && (
                 <div className="bg-neutral-900 border border-purple-800 rounded-xl p-4">
                   <h3 className="text-lg font-bold mb-4 text-purple-300">🎲 Roll Stats (4d6 drop lowest)</h3>
