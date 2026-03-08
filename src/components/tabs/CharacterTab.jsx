@@ -1,7 +1,5 @@
 import React from 'react';
-// ✅ Correct (named import)
-import { useStore } from '../../state/store';
-
+import { useCharacterStore } from '../../state/store';
 export default function CharacterTab() {
   const { character, updateCharacter } = useStore();
 
