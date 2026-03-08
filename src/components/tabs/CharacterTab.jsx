@@ -2,20 +2,15 @@
 import { useCharacterStore } from '../../state/store';
 
 export default function CharacterTab() {
-  const { character, updateCharacter } = useCharacterStore();
-
-  // Early return if no character
-  if (!character) {
-    return (
-      <div className="p-8 text-center text-gray-400">
-        <p className="text-lg">✨ Create a character to begin ✨</p>
-      </div>
-    );
-  }
+  const { character, createCharacter, updateCharacter } = useCharacterStore();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    updateCharacter({ [name]: value });
+    if (character) {
+      updateCharacter({ [name]: value });
+    } else {
+      createCharacter(value || 'New Character');
+    }
   };
 
   return (
@@ -31,6 +26,7 @@ export default function CharacterTab() {
             value={character?.name || ''}
             onChange={handleChange}
             className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
+            placeholder="Enter name..."
           />
         </div>
 
@@ -42,6 +38,7 @@ export default function CharacterTab() {
             value={character?.background || ''}
             onChange={handleChange}
             className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
+            placeholder="e.g., Acolyte, Soldier..."
           />
         </div>
 
@@ -57,6 +54,12 @@ export default function CharacterTab() {
             <option value="human">Human</option>
             <option value="elf">Elf</option>
             <option value="dwarf">Dwarf</option>
+            <option value="halfling">Halfling</option>
+            <option value="dragonborn">Dragonborn</option>
+            <option value="gnome">Gnome</option>
+            <option value="halfElf">Half-Elf</option>
+            <option value="halfOrc">Half-Orc</option>
+            <option value="tiefling">Tiefling</option>
           </select>
         </div>
 
@@ -69,6 +72,7 @@ export default function CharacterTab() {
               value={character?.class || ''}
               onChange={handleChange}
               className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
+              placeholder="e.g., Fighter, Wizard..."
             />
           </div>
           <div>
@@ -79,6 +83,8 @@ export default function CharacterTab() {
               value={character?.level || 1}
               onChange={handleChange}
               className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
+              min="1"
+              max="20"
             />
           </div>
         </div>
