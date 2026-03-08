@@ -23,10 +23,13 @@ export default function SkillsTab() {
             <div key={skill.key} className={`flex items-center justify-between p-3 rounded border backdrop-blur-sm ${isProficient ? 'bg-green-900/50 border-green-500 shadow-lg shadow-green-500/20' : 'bg-dark-purple-950/50 border-dark-purple-700'}`}>
               <div className="flex items-center gap-3">
                 <input type="checkbox" checked={isProficient} onChange={() => toggleSkillProficiency(skill.key)} className="h-4 w-4 text-green-500 rounded focus:ring-green-500" />
-                <span className="font-medium text-white">{skill.name}</span>
-                <span className="text-xs text-gray-400 uppercase">({skill.ability})</span>
+                <div>
+                  <span className="font-medium text-white">{skill.name}</span>
+                  <span className="text-xs text-gray-400 ml-2 uppercase">({skill.ability})</span>
+                  {skill.description && <p className="text-xs text-gray-500 mt-1">{skill.description}</p>}
+                </div>
               </div>
-              <div className="font-bold text-green-400">{sign}{total}</div>
+              <div className="font-bold text-green-400 text-lg">{sign}{total}</div>
             </div>
           );
         })}

@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { useCharacterStore } from '../../state/store';
-import { races, subraces, classes, backgrounds, alignments, languages, armorTypes } from '../../data/dndRules';
+import { races, subraces, classes, backgrounds, alignments } from '../../data/dndRules';
+import { getRaceData } from '../../data/raceData';
 
 export default function CharacterTab() {
   const { character, createCharacter, updateCharacter } = useCharacterStore();
@@ -16,6 +17,7 @@ export default function CharacterTab() {
 
   const selectedRace = character?.race || '';
   const availableSubraces = subraces[selectedRace] || [];
+  const raceData = selectedRace ? getRaceData(selectedRace) : null;
 
   return (
     <div className="space-y-4 p-6 bg-tab-purple/20 backdrop-blur-sm rounded-xl m-4">
@@ -25,7 +27,7 @@ export default function CharacterTab() {
         {/* Name */}
         <div>
           <label className="block text-sm font-medium text-purple-200">Character Name *</label>
-          <input type="text" name="name" value={character?.name || ''} onChange={handleChange} className="input-field mt-1 border-purple-500/50 focus:border-purple-400" placeholder="Enter name..." />
+          <input type="text" name="name" value={character?.name || ''} onChange={handleChange} className="input-field mt-1" placeholder="Enter name..." />
         </div>
 
         {/* Background */}
@@ -33,7 +35,7 @@ export default function CharacterTab() {
           <label className="block text-sm font-medium text-purple-200">Background</label>
           <select name="background" value={character?.background || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Background</option>
-            {backgrounds.map(bg => <option key={bg} value={bg}>{bg.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
+            {backgrounds.map(bg => <option key={bg} value={bg}>{bg.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
           </select>
         </div>
 
@@ -42,7 +44,7 @@ export default function CharacterTab() {
           <label className="block text-sm font-medium text-purple-200">Species/Race</label>
           <select name="race" value={character?.race || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Race</option>
-            {races.map(r => <option key={r} value={r}>{r.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
+            {races.map(r => <option key={r} value={r}>{r.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
           </select>
         </div>
 
@@ -77,18 +79,24 @@ export default function CharacterTab() {
           <label className="block text-sm font-medium text-purple-200">Alignment</label>
           <select name="alignment" value={character?.alignment || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Alignment</option>
-            {alignments.map(a => <option key={a} value={a}>{a.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
+            {alignments.map(a => <option key={a} value={a}>{a.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
           </select>
         </div>
 
-        {/* Languages */}
-        <div>
-          <label className="block text-sm font-medium text-purple-200">Extra Language</label>
-          <select name="language" value={character?.language || ''} onChange={handleChange} className="input-field mt-1">
-            <option value="">Common (auto)</option>
-            {languages.filter(l => l !== 'common').map(l => <option key={l} value={l}>{l.replace(/\b\w/g, l => l.toUpperCase())}</option>)}
-          </select>
-        </div>
+        {/* Race Features Display */}
+        {raceData && raceData.features && (
+          <div className="md:col-span-2 bg-dark-purple-950/50 border border-purple-700/50 p-4 rounded-lg">
+            <h3 className="text-sm font-bold text-purple-300 mb-2">🎯 {raceData.name} Features</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-300">
+              {raceData.features.map((f, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <span className="text-purple-400">•</span>
+                  <span><strong className="text-purple-300">{f.name}:</strong> {f.description}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
