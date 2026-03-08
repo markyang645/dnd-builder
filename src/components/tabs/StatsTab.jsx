@@ -61,7 +61,7 @@ export default function StatsTab() {
                 className={`flex items-center justify-between p-3 rounded border backdrop-blur-sm ${
                   isProficient 
                     ? 'bg-green-900/50 border-green-500 shadow-lg shadow-green-500/20' 
-                    : 'bg-dark-purple-950/50 border-dark-purple-700'
+                    : 'bg-purple-900/40 border-dark-purple-700'
                 }`}
               >
                 <div className="flex items-center gap-3">

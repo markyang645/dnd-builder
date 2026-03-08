@@ -26,7 +26,7 @@ export default function SkillsTab() {
           const sign = total >= 0 ? '+' : '';
 
           return (
-            <div key={skill.key} className={`flex items-center justify-between p-3 rounded border backdrop-blur-sm ${isProficient ? 'bg-green-900/50 border-green-500' : 'bg-dark-purple-950/50 border-dark-purple-700'}`}>
+            <div key={skill.key} className={`flex items-center justify-between p-3 rounded border backdrop-blur-sm ${isProficient ? 'bg-green-900/50 border-green-500' : 'bg-purple-900/40 border-dark-purple-700'}`}>
               <div className="flex items-center gap-3">
                 <input type="checkbox" checked={isProficient} onChange={() => toggleSkillProficiency(skill.key)} className="h-4 w-4 text-green-500 rounded" />
                 <div>
