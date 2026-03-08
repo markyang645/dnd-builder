@@ -3,7 +3,7 @@ import {
   CharacterTab, ClassTab, AbilitiesTab, SkillsTab, 
   DetailsTab, ExportTab, CustomTab 
 } from './components/tabs';
-import useStore from './state/store';
+import { useCharacterStore } from './state/store';
 
 // Simple Icon Components (or import from lucide-react)
 const TabButton = ({ active, onClick, children }) => (
@@ -21,7 +21,7 @@ const TabButton = ({ active, onClick, children }) => (
 
 function App() {
   const [activeTab, setActiveTab] = useState('character');
-  const { character } = useStore();
+  const { character } = useCharacterStore();
 
   const renderTab = () => {
     switch (activeTab) {
