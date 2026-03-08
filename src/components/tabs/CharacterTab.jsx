@@ -1,141 +1,100 @@
 ﻿import React from 'react';
 import { useCharacterStore } from '../../state/store';
-import { races, subraces, classes, backgrounds, alignments } from '../../data/dndRules';
-import { getRaceData } from '../../data/raceData';
+import { getAllRaceKeys } from '../../data/raceData';
 
 export default function CharacterTab() {
   const { character, createCharacter, updateCharacter } = useCharacterStore();
-
-  // Auto-create character if none exists
-  React.useEffect(() => {
-    if (!character) {
-      createCharacter('New Character');
-    }
-  }, []);
+  const allRaces = getAllRaceKeys();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (character) {
       updateCharacter(name, value);
+    } else {
+      createCharacter('New Character');
+      setTimeout(() => updateCharacter(name, value), 0);
     }
   };
-
-  const selectedRace = character?.race || '';
-  const availableSubraces = subraces[selectedRace] || [];
-  const raceData = selectedRace ? getRaceData(selectedRace) : null;
-
-  if (!character) {
-    return (
-      <div className="p-8 text-center text-gray-400">
-        <p>✨ Loading character...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4 p-6 bg-tab-purple/20 backdrop-blur-sm rounded-xl m-4">
       <h2 className="text-2xl font-bold text-white drop-shadow-lg">✨ Character Identity</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Name - WORKS IMMEDIATELY */}
         <div>
           <label className="block text-sm font-medium text-purple-200">Character Name</label>
-          <input
-            type="text"
-            name="name"
-            value={character.name || ''}
-            onChange={handleChange}
-            className="input-field mt-1"
-            placeholder="Enter name..."
-          />
+          <input type="text" name="name" value={character?.name || ''} onChange={handleChange} className="input-field mt-1" placeholder="Enter name..." />
         </div>
 
-        {/* Background */}
         <div>
           <label className="block text-sm font-medium text-purple-200">Background</label>
-          <select name="background" value={character.background || ''} onChange={handleChange} className="input-field mt-1">
+          <select name="background" value={character?.background || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Background</option>
-            {backgrounds.map(bg => (
-              <option key={bg} value={bg}>{bg.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
-            ))}
+            <option value="acolyte">Acolyte</option>
+            <option value="charlatan">Charlatan</option>
+            <option value="criminal">Criminal</option>
+            <option value="entertainer">Entertainer</option>
+            <option value="folk-hero">Folk Hero</option>
+            <option value="guild-artisan">Guild Artisan</option>
+            <option value="hermit">Hermit</option>
+            <option value="noble">Noble</option>
+            <option value="outlander">Outlander</option>
+            <option value="sage">Sage</option>
+            <option value="sailor">Sailor</option>
+            <option value="soldier">Soldier</option>
+            <option value="urchin">Urchin</option>
           </select>
         </div>
 
-        {/* Race */}
         <div>
           <label className="block text-sm font-medium text-purple-200">Species/Race</label>
-          <select name="race" value={character.race || ''} onChange={handleChange} className="input-field mt-1">
+          <select name="race" value={character?.race || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Race</option>
-            {races.map(r => (
-              <option key={r} value={r}>{r.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
-            ))}
+            {allRaces.map(r => <option key={r.key} value={r.key}>{r.name}</option>)}
           </select>
         </div>
 
-        {/* Subrace */}
-        {availableSubraces.length > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-purple-200">Subrace</label>
-            <select name="subrace" value={character.subrace || ''} onChange={handleChange} className="input-field mt-1">
-              <option value="">Select Subrace</option>
-              {availableSubraces.map(sr => (
-                <option key={sr} value={sr}>{sr.replace(/([A-Z])/g, ' $1').replace(/\b\w/g, l => l.toUpperCase())}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {/* Class */}
         <div>
           <label className="block text-sm font-medium text-purple-200">Class</label>
-          <select name="class" value={character.class || ''} onChange={handleChange} className="input-field mt-1">
+          <select name="class" value={character?.class || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Class</option>
-            {classes.map(c => (
-              <option key={c} value={c}>{c.replace(/\b\w/g, l => l.toUpperCase())}</option>
-            ))}
+            <option value="artificer">Artificer</option>
+            <option value="barbarian">Barbarian</option>
+            <option value="bard">Bard</option>
+            <option value="cleric">Cleric</option>
+            <option value="druid">Druid</option>
+            <option value="fighter">Fighter</option>
+            <option value="monk">Monk</option>
+            <option value="paladin">Paladin</option>
+            <option value="ranger">Ranger</option>
+            <option value="rogue">Rogue</option>
+            <option value="sorcerer">Sorcerer</option>
+            <option value="warlock">Warlock</option>
+            <option value="wizard">Wizard</option>
           </select>
         </div>
 
-        {/* Level */}
         <div>
           <label className="block text-sm font-medium text-purple-200">Level</label>
-          <input
-            type="number"
-            name="level"
-            value={character.level || 1}
-            onChange={handleChange}
-            min="1"
-            max="20"
-            className="input-field mt-1"
-          />
+          <input type="number" name="level" value={character?.level || 1} onChange={handleChange} min="1" max="20" className="input-field mt-1" />
         </div>
 
-        {/* Alignment */}
         <div>
           <label className="block text-sm font-medium text-purple-200">Alignment</label>
-          <select name="alignment" value={character.alignment || ''} onChange={handleChange} className="input-field mt-1">
+          <select name="alignment" value={character?.alignment || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Alignment</option>
-            {alignments.map(a => (
-              <option key={a} value={a}>{a.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
-            ))}
+            <option value="lawful-good">Lawful Good</option>
+            <option value="neutral-good">Neutral Good</option>
+            <option value="chaotic-good">Chaotic Good</option>
+            <option value="lawful-neutral">Lawful Neutral</option>
+            <option value="neutral">Neutral</option>
+            <option value="chaotic-neutral">Chaotic Neutral</option>
+            <option value="lawful-evil">Lawful Evil</option>
+            <option value="neutral-evil">Neutral Evil</option>
+            <option value="chaotic-evil">Chaotic Evil</option>
           </select>
         </div>
       </div>
-
-      {/* Race Features */}
-      {raceData && raceData.features && (
-        <div className="bg-dark-purple-950/50 border border-purple-700/50 p-4 rounded-lg">
-          <h3 className="text-sm font-bold text-purple-300 mb-2">🎯 {raceData.name} Features</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-300">
-            {raceData.features.map((f, i) => (
-              <div key={i} className="flex items-start gap-2">
-                <span className="text-purple-400">•</span>
-                <span><strong className="text-purple-300">{f.name}:</strong> {f.description}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
