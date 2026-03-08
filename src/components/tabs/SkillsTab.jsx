@@ -3,11 +3,17 @@ import { useCharacterStore } from '../../state/store';
 import { skills, getProficiencyBonus } from '../../data/dndRules';
 
 export default function SkillsTab() {
-  const { character, toggleSkillProficiency } = useCharacterStore();
+  const { character, createCharacter, toggleSkillProficiency } = useCharacterStore();
+
+  React.useEffect(() => {
+    if (!character) createCharacter('New Character');
+  }, []);
 
   const profBonus = getProficiencyBonus(character?.level || 1);
   const abilities = character?.abilities || { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 };
   const skillProficiencies = character?.skillProficiencies || [];
+
+  if (!character) return null;
 
   return (
     <div className="p-6 bg-tab-green/20 backdrop-blur-sm rounded-xl m-4">
@@ -20,13 +26,12 @@ export default function SkillsTab() {
           const sign = total >= 0 ? '+' : '';
 
           return (
-            <div key={skill.key} className={`flex items-center justify-between p-3 rounded border backdrop-blur-sm ${isProficient ? 'bg-green-900/50 border-green-500 shadow-lg shadow-green-500/20' : 'bg-dark-purple-950/50 border-dark-purple-700'}`}>
+            <div key={skill.key} className={`flex items-center justify-between p-3 rounded border backdrop-blur-sm ${isProficient ? 'bg-green-900/50 border-green-500' : 'bg-dark-purple-950/50 border-dark-purple-700'}`}>
               <div className="flex items-center gap-3">
-                <input type="checkbox" checked={isProficient} onChange={() => toggleSkillProficiency(skill.key)} className="h-4 w-4 text-green-500 rounded focus:ring-green-500" />
+                <input type="checkbox" checked={isProficient} onChange={() => toggleSkillProficiency(skill.key)} className="h-4 w-4 text-green-500 rounded" />
                 <div>
                   <span className="font-medium text-white">{skill.name}</span>
                   <span className="text-xs text-gray-400 ml-2 uppercase">({skill.ability})</span>
-                  {skill.description && <p className="text-xs text-gray-500 mt-1">{skill.description}</p>}
                 </div>
               </div>
               <div className="font-bold text-green-400 text-lg">{sign}{total}</div>

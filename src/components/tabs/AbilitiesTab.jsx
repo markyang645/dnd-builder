@@ -5,7 +5,13 @@ import { getModifier } from '../../data/dndRules';
 const ABILITIES = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
 export default function AbilitiesTab() {
-  const { character, updateAbility } = useCharacterStore();
+  const { character, createCharacter, updateAbility } = useCharacterStore();
+
+  // Auto-create if none
+  React.useEffect(() => {
+    if (!character) createCharacter('New Character');
+  }, []);
+
   const abilities = character?.abilities || { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 };
 
   return (
@@ -20,15 +26,10 @@ export default function AbilitiesTab() {
           return (
             <div key={ability} className="bg-dark-purple-950/80 p-4 rounded-lg border border-yellow-600/50 text-center">
               <label className="block text-xs font-bold uppercase text-yellow-400">{ability}</label>
-              <input 
-                type="number" 
-                value={score} 
-                onChange={(e) => {
-                  const val = parseInt(e.target.value);
-                  if (!isNaN(val) && val >= 1 && val <= 20) {
-                    updateAbility(ability, val);
-                  }
-                }}
+              <input
+                type="number"
+                value={score}
+                onChange={(e) => updateAbility(ability, parseInt(e.target.value) || 10)}
                 className="w-full text-center text-xl font-bold bg-transparent border-b border-yellow-600/50 focus:outline-none focus:border-yellow-400 text-white"
               />
               <div className="mt-2 text-2xl font-bold text-yellow-400">{sign}{mod}</div>
