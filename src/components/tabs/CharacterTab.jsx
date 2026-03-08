@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import { useCharacterStore } from '../../state/store';
-import { getAllRaceKeys } from '../../data/raceData';
+import { getAllRaceKeys, getRaceData } from '../../data/raceData';
 
 export default function CharacterTab() {
   const { character, createCharacter, updateCharacter } = useCharacterStore();
@@ -8,13 +8,16 @@ export default function CharacterTab() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (character) {
-      updateCharacter(name, value);
-    } else {
-      createCharacter('New Character');
-      setTimeout(() => updateCharacter(name, value), 0);
-    }
+    updateCharacter(name, value);
   };
+
+  const selectedRace = character?.race || '';
+  const raceData = selectedRace ? getRaceData(selectedRace) : null;
+  const hasSubraces = raceData?.subraces && Object.keys(raceData.subraces).length > 0;
+  const availableSubraces = hasSubraces ? Object.entries(raceData.subraces).map(([key, subrace]) => ({
+    key: `${selectedRace}.${key}`,
+    name: subrace.name,
+  })) : [];
 
   return (
     <div className="space-y-4 p-6 bg-tab-purple/20 backdrop-blur-sm rounded-xl m-4">
@@ -50,9 +53,23 @@ export default function CharacterTab() {
           <label className="block text-sm font-medium text-purple-200">Species/Race</label>
           <select name="race" value={character?.race || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Race</option>
-            {allRaces.map(r => <option key={r.key} value={r.key}>{r.name}</option>)}
+            {allRaces.filter(r => !r.isSubrace).map(r => (
+              <option key={r.key} value={r.key}>{r.name}</option>
+            ))}
           </select>
         </div>
+
+        {hasSubraces && (
+          <div>
+            <label className="block text-sm font-medium text-purple-200">Subrace/Variant</label>
+            <select name="subrace" value={character?.subrace || ''} onChange={handleChange} className="input-field mt-1">
+              <option value="">Select Subrace</option>
+              {availableSubraces.map(sr => (
+                <option key={sr.key} value={sr.key}>{sr.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-purple-200">Class</label>
@@ -95,6 +112,20 @@ export default function CharacterTab() {
           </select>
         </div>
       </div>
+
+      {raceData && (
+        <div className="bg-dark-purple-950/50 border border-purple-700/50 p-4 rounded-lg">
+          <h3 className="text-sm font-bold text-purple-300 mb-2">🎯 {raceData.name} Features</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-300">
+            {getRaceFeatures(selectedRace).map((f, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className="text-purple-400">•</span>
+                <span><strong className="text-purple-300">{f.name}:</strong> {f.description}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
