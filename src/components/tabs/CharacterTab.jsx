@@ -1,22 +1,20 @@
 ﻿import React from 'react';
 import { useCharacterStore } from '../../state/store';
-import { races, subraces, classes, backgrounds, alignments } from '../../data/dndRules';
+import { races, subraces, classes, subclasses, backgrounds, alignments } from '../../data/dndRules';
 import { getRaceData } from '../../data/raceData';
 
 export default function CharacterTab() {
-  const { character, createCharacter, updateCharacter } = useCharacterStore();
+  const { character, updateCharacter } = useCharacterStore();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (character) {
-      updateCharacter(name, value);
-    } else if (value && name === 'name') {
-      createCharacter(value);
-    }
+    updateCharacter(name, value);
   };
 
   const selectedRace = character?.race || '';
+  const selectedClass = character?.class || '';
   const availableSubraces = subraces[selectedRace] || [];
+  const availableSubclasses = subclasses[selectedClass] || [];
   const raceData = selectedRace ? getRaceData(selectedRace) : null;
 
   return (
@@ -26,18 +24,16 @@ export default function CharacterTab() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Name */}
         <div>
-          <label className="block text-sm font-medium text-purple-200">Character Name *</label>
+          <label className="block text-sm font-medium text-purple-200">Character Name</label>
           <input type="text" name="name" value={character?.name || ''} onChange={handleChange} className="input-field mt-1" placeholder="Enter name..." />
         </div>
 
-        {/* Background */}
+        {/* Background - ALL 13 PHB + More */}
         <div>
           <label className="block text-sm font-medium text-purple-200">Background</label>
           <select name="background" value={character?.background || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Background</option>
-            {backgrounds.map(bg => (
-              <option key={bg} value={bg}>{bg.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
-            ))}
+            {backgrounds.map(bg => <option key={bg} value={bg}>{bg.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
           </select>
         </div>
 
@@ -46,21 +42,17 @@ export default function CharacterTab() {
           <label className="block text-sm font-medium text-purple-200">Species/Race</label>
           <select name="race" value={character?.race || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Race</option>
-            {races.map(r => (
-              <option key={r} value={r}>{r.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
-            ))}
+            {races.map(r => <option key={r} value={r}>{r.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
           </select>
         </div>
 
-        {/* Subrace (conditional) */}
+        {/* Subrace */}
         {availableSubraces.length > 0 && (
           <div>
             <label className="block text-sm font-medium text-purple-200">Subrace</label>
             <select name="subrace" value={character?.subrace || ''} onChange={handleChange} className="input-field mt-1">
               <option value="">Select Subrace</option>
-              {availableSubraces.map(sr => (
-                <option key={sr} value={sr}>{sr.replace(/([A-Z])/g, ' $1').replace(/\b\w/g, l => l.toUpperCase())}</option>
-              ))}
+              {availableSubraces.map(sr => <option key={sr} value={sr}>{sr.replace(/([A-Z])/g, ' $1').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
             </select>
           </div>
         )}
@@ -70,11 +62,20 @@ export default function CharacterTab() {
           <label className="block text-sm font-medium text-purple-200">Class</label>
           <select name="class" value={character?.class || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Class</option>
-            {classes.map(c => (
-              <option key={c} value={c}>{c.replace(/\b\w/g, l => l.toUpperCase())}</option>
-            ))}
+            {classes.map(c => <option key={c} value={c}>{c.replace(/\b\w/g, l => l.toUpperCase())}</option>)}
           </select>
         </div>
+
+        {/* Subclass */}
+        {availableSubclasses.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-purple-200">Subclass</label>
+            <select name="subclass" value={character?.subclass || ''} onChange={handleChange} className="input-field mt-1">
+              <option value="">Select Subclass</option>
+              {availableSubclasses.map(sc => <option key={sc} value={sc}>{sc.replace(/([A-Z])/g, ' $1').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
+            </select>
+          </div>
+        )}
 
         {/* Level */}
         <div>
@@ -87,27 +88,25 @@ export default function CharacterTab() {
           <label className="block text-sm font-medium text-purple-200">Alignment</label>
           <select name="alignment" value={character?.alignment || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Alignment</option>
-            {alignments.map(a => (
-              <option key={a} value={a}>{a.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
-            ))}
+            {alignments.map(a => <option key={a} value={a}>{a.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
           </select>
         </div>
-
-        {/* Race Features Display */}
-        {raceData && raceData.features && (
-          <div className="md:col-span-2 bg-dark-purple-950/50 border border-purple-700/50 p-4 rounded-lg">
-            <h3 className="text-sm font-bold text-purple-300 mb-2">🎯 {raceData.name} Features</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-300">
-              {raceData.features.map((f, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <span className="text-purple-400">•</span>
-                  <span><strong className="text-purple-300">{f.name}:</strong> {f.description}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Race Features Display */}
+      {raceData && raceData.features && (
+        <div className="bg-dark-purple-950/50 border border-purple-700/50 p-4 rounded-lg">
+          <h3 className="text-sm font-bold text-purple-300 mb-2">🎯 {raceData.name} Features</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-300">
+            {raceData.features.map((f, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className="text-purple-400">•</span>
+                <span><strong className="text-purple-300">{f.name}:</strong> {f.description}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

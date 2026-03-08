@@ -114,6 +114,21 @@ export const subraces = {
   halfling: ['lightfoot', 'stout'],
   gnome: ['forestGnome', 'rockGnome'],
 }
+export const subclasses = {
+  barbarian: ['Path of the Berserker', 'Path of the Totem Warrior', 'Path of the Ancestral Guardian', 'Path of the Storm Herald', 'Path of the Zealot', 'Path of the Beast', 'Path of Wild Magic'],
+  bard: ['College of Lore', 'College of Valor', 'College of Glamour', 'College of Swords', 'College of Whispers', 'College of Creation', 'College of Eloquence'],
+  cleric: ['Life Domain', 'Light Domain', 'Nature Domain', 'Tempest Domain', 'Trickery Domain', 'War Domain', 'Knowledge Domain', 'Death Domain', 'Forge Domain', 'Grave Domain', 'Order Domain', 'Peace Domain', 'Twilight Domain'],
+  druid: ['Circle of the Land', 'Circle of the Moon', 'Circle of Dreams', 'Circle of the Shepherd', 'Circle of the Spores', 'Circle of the Stars', 'Circle of Wildfire'],
+  fighter: ['Champion', 'Battle Master', 'Eldritch Knight', 'Arcane Archer', 'Cavalier', 'Samurai', 'Rune Knight', 'Psi Warrior', 'Echo Knight'],
+  monk: ['Way of the Open Hand', 'Way of Shadow', 'Way of the Four Elements', 'Way of the Long Death', 'Way of the Drunken Master', 'Way of the Kensei', 'Way of Mercy', 'Way of the Astral Self'],
+  paladin: ['Oath of Devotion', 'Oath of the Ancients', 'Oath of Vengeance', 'Oath of Conquest', 'Oath of Redemption', 'Oath of Glory', 'Oath of the Watchers', 'Oath of the Crown', 'Oathbreaker'],
+  ranger: ['Hunter', 'Beast Master', 'Gloom Stalker', 'Horizon Walker', 'Monster Slayer', 'Fey Wanderer', 'Swarmkeeper', 'Drakewarden'],
+  rogue: ['Thief', 'Assassin', 'Arcane Trickster', 'Mastermind', 'Scout', 'Inquisitive', 'Phantom', 'Soulknife', 'Swashbuckler'],
+  sorcerer: ['Draconic Bloodline', 'Wild Magic', 'Storm Sorcery', 'Divine Soul', 'Shadow Magic', 'Phoenix Sorcery', 'Aberrant Mind', 'Clockwork Soul', 'Lunar Sorcery'],
+  warlock: ['The Fiend', 'The Archfey', 'The Great Old One', 'The Celestial', 'The Hexblade', 'The Genie', 'The Fathomless', 'The Undead', 'The Undying'],
+  wizard: ['School of Abjuration', 'School of Conjuration', 'School of Divination', 'School of Enchantment', 'School of Evocation', 'School of Illusion', 'School of Necromancy', 'School of Transmutation', 'Bladesinging', 'War Magic', 'Order of Scribes', 'Chronurgy Magic', 'Graviturgy Magic'],
+}
+
 export const classes = ['barbarian', 'bard', 'cleric', 'druid', 'fighter', 'monk', 'paladin', 'ranger', 'rogue', 'sorcerer', 'warlock', 'wizard']
 export const backgrounds = ['acolyte', 'charlatan', 'criminal', 'entertainer', 'folk-hero', 'guild-artisan', 'hermit', 'noble', 'outlander', 'sage', 'sailor', 'soldier', 'urchin']
 export const alignments = ['lawful-good', 'neutral-good', 'chaotic-good', 'lawful-neutral', 'neutral', 'chaotic-neutral', 'lawful-evil', 'neutral-evil', 'chaotic-evil']
