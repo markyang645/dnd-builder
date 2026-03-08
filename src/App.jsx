@@ -1,18 +1,16 @@
 ﻿import React, { useState } from 'react';
 import { 
-  CharacterTab, ClassTab, AbilitiesTab, SkillsTab, 
-  DetailsTab, ExportTab, CustomTab 
+  CharacterTab, ClassTab, StatsTab, DetailsTab, ExportTab, CustomTab 
 } from './components/tabs';
 import { useCharacterStore } from './state/store';
 
 const tabs = [
-  { key: 'character', label: 'CHARACTER', color: 'purple', gradient: 'from-purple-600 to-purple-400' },
-  { key: 'class', label: 'CLASS', color: 'blood-red', gradient: 'from-[#8b0000] to-[#c41e1e]' },
-  { key: 'abilities', label: 'ABILITIES', color: 'gold', gradient: 'from-[#ffd700] to-[#ffed4a]' },
-  { key: 'skills', label: 'SKILLS', color: 'green', gradient: 'from-[#22c55e] to-[#4ade80]' },
-  { key: 'details', label: 'DETAILS', color: 'galaxy-blue', gradient: 'from-[#4b6cb7] to-[#7a94d4]' },
-  { key: 'export', label: 'EXPORT', color: 'orange', gradient: 'from-[#ff8c00] to-[#ffb84d]' },
-  { key: 'custom', label: 'CUSTOM', color: 'periwinkle', gradient: 'from-[#ccccff] to-[#e6e6ff]' },
+  { key: 'character', label: 'CHARACTER', gradient: 'from-purple-600 to-purple-400' },
+  { key: 'class', label: 'CLASS', gradient: 'from-red-600 to-red-400' },
+  { key: 'stats', label: 'STATS', gradient: 'from-yellow-600 to-yellow-400' },
+  { key: 'details', label: 'DETAILS', gradient: 'from-sky-600 to-sky-400' },
+  { key: 'export', label: 'EXPORT', gradient: 'from-orange-600 to-orange-400' },
+  { key: 'custom', label: 'CUSTOM', gradient: 'from-pink-600 to-pink-400' },
 ];
 
 function App() {
@@ -23,8 +21,7 @@ function App() {
     switch (activeTab) {
       case 'character': return <CharacterTab />;
       case 'class': return <ClassTab />;
-      case 'abilities': return <AbilitiesTab />;
-      case 'skills': return <SkillsTab />;
+      case 'stats': return <StatsTab />;
       case 'details': return <DetailsTab />;
       case 'export': return <ExportTab />;
       case 'custom': return <CustomTab />;
@@ -35,7 +32,7 @@ function App() {
   const activeTabData = tabs.find(t => t.key === activeTab);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex text-white">
+    <div className="min-h-screen bg-vantablack flex text-white">
       {/* Sidebar */}
       <aside className="w-64 bg-dark-purple-900/50 backdrop-blur-sm border-r border-dark-purple-800 p-4 hidden md:block">
         <h1 className="text-xl font-bold text-purple-400 mb-6">D&D Builder</h1>
@@ -69,7 +66,7 @@ function App() {
           ))}
         </div>
 
-        {/* Tab Content Area */}
+        {/* Tab Content */}
         <div className={`flex-1 overflow-y-auto bg-gradient-to-br ${activeTabData?.gradient}/10`}>
           {renderTab()}
         </div>
