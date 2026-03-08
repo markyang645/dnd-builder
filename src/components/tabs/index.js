@@ -1,4 +1,4 @@
-export { default as CharacterTab } from './CharacterTab';
+﻿export { default as CharacterTab } from './CharacterTab';
 export { default as ClassTab } from './ClassTab';
 export { default as AbilitiesTab } from './AbilitiesTab';
 export { default as SkillsTab } from './SkillsTab';
