@@ -1,5 +1,6 @@
 import React from 'react';
-import useStore from '../../state/store';
+// ✅ Correct (named import)
+import { useStore } from '../../state/store';
 
 export default function ExportTab() {
   const { character } = useStore();
