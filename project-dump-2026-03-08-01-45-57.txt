@@ -1,0 +1,2267 @@
+﻿================================================================================
+D&D BUILDER - FULL PROJECT DUMP
+Generated: 2026-03-08 01:45:57
+Location: C:\Users\marky\Dnd-Helper
+================================================================================
+
+
+================================================================================
+FILE: src/App.jsx
+LINES: 73
+================================================================================
+import React, { useState } from 'react';
+import { 
+  CharacterTab, ClassTab, AbilitiesTab, SkillsTab, 
+  DetailsTab, ExportTab, CustomTab 
+} from './components/tabs';
+import { useCharacterStore } from './state/store';
+
+const tabs = [
+  { key: 'character', label: 'CHARACTER', color: 'purple', gradient: 'from-purple-600 to-purple-400' },
+  { key: 'class', label: 'CLASS', color: 'blood-red', gradient: 'from-[#8b0000] to-[#c41e1e]' },
+  { key: 'abilities', label: 'ABILITIES', color: 'gold', gradient: 'from-[#ffd700] to-[#ffed4a]' },
+  { key: 'skills', label: 'SKILLS', color: 'green', gradient: 'from-[#22c55e] to-[#4ade80]' },
+  { key: 'details', label: 'DETAILS', color: 'galaxy-blue', gradient: 'from-[#4b6cb7] to-[#7a94d4]' },
+  { key: 'export', label: 'EXPORT', color: 'orange', gradient: 'from-[#ff8c00] to-[#ffb84d]' },
+  { key: 'custom', label: 'CUSTOM', color: 'periwinkle', gradient: 'from-[#ccccff] to-[#e6e6ff]' },
+];
+
+function App() {
+  const [activeTab, setActiveTab] = useState('character');
+  const { character } = useCharacterStore();
+
+  const renderTab = () => {
+    switch (activeTab) {
+      case 'character': return <CharacterTab />;
+      case 'class': return <ClassTab />;
+      case 'abilities': return <AbilitiesTab />;
+      case 'skills': return <SkillsTab />;
+      case 'details': return <DetailsTab />;
+      case 'export': return <ExportTab />;
+      case 'custom': return <CustomTab />;
+      default: return <CharacterTab />;
+    }
+  };
+
+  const activeTabData = tabs.find(t => t.key === activeTab);
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0a] flex text-white">
+      {/* Sidebar */}
+      <aside className="w-64 bg-dark-purple-900/50 backdrop-blur-sm border-r border-dark-purple-800 p-4 hidden md:block">
+        <h1 className="text-xl font-bold text-purple-400 mb-6">D&D Builder</h1>
+        {character ? (
+          <div className="space-y-2 text-sm text-gray-300">
+            <p><strong>Name:</strong> {character.name}</p>
+            <p><strong>Level:</strong> {character.level}</p>
+            <p><strong>Class:</strong> {character.class}</p>
+          </div>
+        ) : (
+          <p className="text-gray-500 text-sm">Create a character to begin</p>
+        )}
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col">
+        {/* Tab Navigation */}
+        <div className="bg-dark-purple-950/80 backdrop-blur-sm px-2 pt-2 flex gap-1 overflow-x-auto border-b border-dark-purple-800">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-4 py-2 text-xs font-bold rounded-t-md transition-all duration-200 whitespace-nowrap ${
+                activeTab === tab.key
+                  ? `bg-gradient-to-r ${tab.gradient} text-white shadow-lg scale-105 border-t border-l border-r border-white/20`
+                  : 'bg-dark-purple-900/50 text-gray-400 hover:text-white hover:bg-dark-purple-800/50'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content Area */}
+        <div className={`flex-1 overflow-y-auto bg-gradient-to-br ${activeTabData?.gradient}/10`}>
+          {renderTab()}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default App;
+
+
+================================================================================
+FILE: src/main.jsx
+LINES: 10
+================================================================================
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+// import './index.css'
+import './Index.css'
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)
+
+
+================================================================================
+FILE: src/Index.css
+LINES: 69
+================================================================================
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0a0a0a;
+    color: white;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-dark-purple-600 hover:bg-dark-purple-500 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg;
+  }
+  
+  .btn-secondary {
+    @apply bg-dark-purple-800 hover:bg-dark-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 border border-dark-purple-600;
+  }
+  
+  .card {
+    @apply bg-dark-purple-900/50 backdrop-blur-sm border border-dark-purple-700 rounded-xl p-6 shadow-xl;
+  }
+  
+  .input-field {
+    @apply w-full bg-dark-purple-950 border-2 border-dark-purple-700 rounded-lg px-4 py-3 text-white placeholder-dark-purple-400 focus:outline-none focus:border-dark-purple-500 focus:ring-2 focus:ring-dark-purple-500/20 transition-all;
+  }
+}
+
+@layer utilities {
+  /* Friend Color Gradients */
+  .bg-friend-gradient {
+    background: linear-gradient(135deg, 
+      #3b0764 0%, 
+      #9333ea 25%, 
+      #4b6cb7 50%, 
+      #22c55e 75%, 
+      #ffd700 100%
+    );
+  }
+  
+  .bg-tab-purple {
+    background: linear-gradient(135deg, #9333ea, #c084fc);
+  }
+  
+  .bg-tab-blood {
+    background: linear-gradient(135deg, #8b0000, #c41e1e);
+  }
+  
+  .bg-tab-gold {
+    background: linear-gradient(135deg, #ffd700, #ffed4a);
+  }
+  
+  .bg-tab-green {
+    background: linear-gradient(135deg, #22c55e, #4ade80);
+  }
+  
+  .bg-tab-sky {
+    background: linear-gradient(135deg, #87ceeb, #b8e4f5);
+  }
+  
+  .bg-tab-orange {
+    background: linear-gradient(135deg, #ff8c00, #ffb84d);
+  }
+}
+
+/* Smooth color transitions */
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 200ms;
+  transition-timing-function: ease-in-out;
+}
+
+
+================================================================================
+FILE: src/components/FeatureList.jsx
+LINES: 123
+================================================================================
+import React from 'react'
+
+// Feature Icon by Type
+const getFeatureIcon = (type) => {
+  const icons = {
+    ability: 'ðŸ’ª',
+    size: 'ðŸ“',
+    speed: 'ðŸƒ',
+    language: 'ðŸ—£ï¸',
+    senses: 'ðŸ‘ï¸',
+    skill: 'ðŸŽ¯',
+    defense: 'ðŸ›¡ï¸',
+    rest: 'ðŸ˜´',
+    spell: 'âœ¨',
+    weapon: 'âš”ï¸',
+    tool: 'ðŸ”§',
+    hp: 'â¤ï¸',
+    armor: 'ðŸ‘•',
+    movement: 'ðŸ‘£',
+    special: 'â­',
+    attack: 'ðŸ’¥',
+    weakness: 'âš ï¸',
+  }
+  return icons[type] || 'ðŸ“‹'
+}
+
+// Feature Type Color
+const getFeatureColor = (type) => {
+  const colors = {
+    ability: 'text-red-400',
+    size: 'text-blue-400',
+    speed: 'text-green-400',
+    language: 'text-purple-400',
+    senses: 'text-yellow-400',
+    skill: 'text-orange-400',
+    defense: 'text-blue-400',
+    rest: 'text-indigo-400',
+    spell: 'text-pink-400',
+    weapon: 'text-red-400',
+    tool: 'text-gray-400',
+    hp: 'text-red-400',
+    armor: 'text-blue-400',
+    movement: 'text-green-400',
+    special: 'text-yellow-400',
+    attack: 'text-red-400',
+    weakness: 'text-orange-400',
+  }
+  return colors[type] || 'text-purple-300'
+}
+
+// Single Feature Card
+export const FeatureCard = ({ feature, compact = false }) => {
+  if (!feature) return null
+  
+  return (
+    <div className={`bg-neutral-950 border border-purple-800 rounded-lg p-3 ${compact ? 'text-xs' : ''}`}>
+      <div className="flex items-start gap-2">
+        <span className="text-lg">{getFeatureIcon(feature.type)}</span>
+        <div className="flex-1">
+          <h4 className={`font-bold ${getFeatureColor(feature.type)} ${compact ? 'text-xs' : 'text-sm'}`}>
+            {feature.name}
+          </h4>
+          <p className={`text-purple-400 ${compact ? 'text-[10px]' : 'text-xs'} mt-1`}>
+            {feature.description}
+          </p>
+          {feature.options && (
+            <div className={`text-purple-300 ${compact ? 'text-[10px]' : 'text-xs'} mt-1`}>
+              Options: {feature.options.join(', ')}
+            </div>
+          )}
+          {feature.weapons && (
+            <div className={`text-purple-300 ${compact ? 'text-[10px]' : 'text-xs'} mt-1`}>
+              Weapons: {feature.weapons.join(', ')}
+            </div>
+          )}
+          {feature.armor && (
+            <div className={`text-purple-300 ${compact ? 'text-[10px]' : 'text-xs'} mt-1`}>
+              Armor: {feature.armor.join(', ')}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// List of Features
+export const FeatureList = ({ features, title, compact = false }) => {
+  if (!features || features.length === 0) return null
+  
+  return (
+    <div className="space-y-2">
+      {title && (
+        <h3 className="text-sm font-bold text-purple-300 mb-2">{title}</h3>
+      )}
+      <div className="space-y-2">
+        {features.map((feature, index) => (
+          <FeatureCard 
+            key={`${feature.name}-${index}`} 
+            feature={feature} 
+            compact={compact}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Race Features (combines base + subrace)
+export const RaceFeatures = ({ raceKey, compact = false }) => {
+  const { getRaceFeatures, getRaceData } = require('../data/raceData')
+  
+  if (!raceKey) return null
+  
+  const race = getRaceData(raceKey)
+  const features = getRaceFeatures(raceKey)
+  
+  return (
+    <div className="space-y-3">
+      <FeatureList 
+        features={features} 
+        title={`${race.name} Features`}
+        compact={compact}
+      />
+    </div>
+  )
+}
+
+export default FeatureList
+
+
+================================================================================
+FILE: src/components/tabs/index.js
+LINES: 7
+================================================================================
+export { default as CharacterTab } from './CharacterTab';
+export { default as ClassTab } from './ClassTab';
+export { default as AbilitiesTab } from './AbilitiesTab';
+export { default as SkillsTab } from './SkillsTab';
+export { default as DetailsTab } from './DetailsTab';
+export { default as ExportTab } from './ExportTab';
+export { default as CustomTab } from './CustomTab';
+
+
+================================================================================
+FILE: src/components/tabs/CharacterTab.jsx
+LINES: 73
+================================================================================
+import React from 'react';
+import { useCharacterStore } from '../../state/store';
+
+export default function CharacterTab() {
+  const { character, updateCharacter } = useCharacterStore();
+
+  if (!character) return <div className="p-4 text-white">Create a character to begin</div>;
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    updateCharacter({ [name]: value });
+  };
+
+  return (
+    <div className="space-y-4 p-6 bg-tab-purple/20 backdrop-blur-sm rounded-xl m-4">
+      <h2 className="text-2xl font-bold text-white drop-shadow-lg">✨ Character Identity</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-purple-200">Character Name</label>
+          <input
+            type="text"
+            name="name"
+            value={character.name || ''}
+            onChange={handleChange}
+            className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-purple-200">Background</label>
+          <input
+            type="text"
+            name="background"
+            value={character.background || ''}
+            onChange={handleChange}
+            className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-purple-200">Race</label>
+          <select
+            name="race"
+            value={character.race || ''}
+            onChange={handleChange}
+            className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
+          >
+            <option value="">Select Race</option>
+            <option value="human">Human</option>
+            <option value="elf">Elf</option>
+            <option value="dwarf">Dwarf</option>
+          </select>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="block text-sm font-medium text-purple-200">Class</label>
+            <input
+              type="text"
+              name="class"
+              value={character.class || ''}
+              onChange={handleChange}
+              className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-purple-200">Level</label>
+            <input
+              type="number"
+              name="level"
+              value={character.level || 1}
+              onChange={handleChange}
+              className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+================================================================================
+FILE: src/components/tabs/ClassTab.jsx
+LINES: 22
+================================================================================
+import React from 'react';
+import { useCharacterStore } from '../../state/store';
+
+export default function ClassTab() {
+  const { character } = useCharacterStore();
+
+  if (!character) return <div className="p-4 text-white">Create a character to begin</div>;
+
+  return (
+    <div className="p-6 bg-tab-blood/20 backdrop-blur-sm rounded-xl m-4">
+      <h2 className="text-2xl font-bold text-white drop-shadow-lg mb-4">⚔️ Class & Features</h2>
+      <div className="bg-dark-purple-950/50 border border-red-700/50 p-6 rounded-lg">
+        <p className="text-gray-300">
+          Class: <span className="text-red-400 font-bold">{character.class || 'None'}</span>
+        </p>
+        <p className="text-gray-300 mt-2">
+          Level: <span className="text-red-400 font-bold">{character.level || 1}</span>
+        </p>
+        <p className="text-gray-400 mt-4 text-sm">
+          Class features will populate here based on your level.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+
+================================================================================
+FILE: src/components/tabs/AbilitiesTab.jsx
+LINES: 34
+================================================================================
+import React from 'react';
+import { useCharacterStore } from '../../state/store';
+
+const ABILITIES = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+
+export default function AbilitiesTab() {
+  const { character, updateAbility } = useCharacterStore();
+
+  if (!character) return <div className="p-4 text-white">Create a character to begin</div>;
+
+  return (
+    <div className="p-6 bg-tab-gold/20 backdrop-blur-sm rounded-xl m-4 space-y-6">
+      <h2 className="text-2xl font-bold text-white drop-shadow-lg">💪 Ability Scores</h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {ABILITIES.map((ability) => {
+          const score = character.abilities?.[ability] || 10;
+          const mod = Math.floor((score - 10) / 2);
+          const sign = mod >= 0 ? '+' : '';
+          
+          return (
+            <div key={ability} className="bg-dark-purple-950/80 p-4 rounded-lg border border-yellow-600/50 text-center">
+              <label className="block text-xs font-bold uppercase text-yellow-400">{ability}</label>
+              <input
+                type="number"
+                value={score}
+                onChange={(e) => updateAbility(ability, parseInt(e.target.value) || 0)}
+                className="w-full text-center text-xl font-bold bg-transparent border-b border-yellow-600/50 focus:outline-none focus:border-yellow-400 text-white"
+              />
+              <div className="mt-2 text-2xl font-bold text-yellow-400">
+                {sign}{mod}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+
+================================================================================
+FILE: src/components/tabs/SkillsTab.jsx
+LINES: 42
+================================================================================
+import React from 'react';
+import { useCharacterStore } from '../../state/store';
+import { skills } from '../../data/skillsData';
+
+export default function SkillsTab() {
+  const { character, toggleSkillProficiency } = useCharacterStore();
+
+  if (!character) return <div className="p-4 text-white">Create a character to begin</div>;
+
+  return (
+    <div className="p-6 bg-tab-green/20 backdrop-blur-sm rounded-xl m-4">
+      <h2 className="text-2xl font-bold text-white drop-shadow-lg mb-4">🎯 Skills</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        {skills.map((skill) => {
+          const isProficient = character.skillProficiencies?.includes(skill.key) || false;
+          const abilityMod = Math.floor(((character.abilities?.[skill.ability] || 10) - 10) / 2);
+          const total = isProficient ? abilityMod + 2 : abilityMod;
+          const sign = total >= 0 ? '+' : '';
+
+          return (
+            <div 
+              key={skill.key} 
+              className={`flex items-center justify-between p-3 rounded border backdrop-blur-sm ${
+                isProficient 
+                  ? 'bg-green-900/50 border-green-500 shadow-lg shadow-green-500/20' 
+                  : 'bg-dark-purple-950/50 border-dark-purple-700'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={isProficient}
+                  onChange={() => toggleSkillProficiency(skill.key)}
+                  className="h-4 w-4 text-green-500 rounded focus:ring-green-500"
+                />
+                <span className="font-medium text-white">{skill.name}</span>
+                <span className="text-xs text-gray-400 uppercase">({skill.ability})</span>
+              </div>
+              <div className="font-bold text-green-400">{sign}{total}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+
+================================================================================
+FILE: src/components/tabs/DetailsTab.jsx
+LINES: 32
+================================================================================
+import React from 'react';
+import { useCharacterStore } from '../../state/store';
+
+export default function DetailsTab() {
+  const { character, updateCharacter } = useCharacterStore();
+
+  if (!character) return <div className="p-4 text-white">Create a character to begin</div>;
+
+  return (
+    <div className="p-6 bg-tab-sky/20 backdrop-blur-sm rounded-xl m-4 space-y-4">
+      <h2 className="text-2xl font-bold text-white drop-shadow-lg">📜 Character Details</h2>
+      
+      <div>
+        <label className="block text-sm font-medium text-sky-200">Alignment</label>
+        <input
+          type="text"
+          name="alignment"
+          value={character.alignment || ''}
+          onChange={(e) => updateCharacter({ alignment: e.target.value })}
+          className="input-field mt-1 border-sky-600/50 focus:border-sky-400"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-sky-200">Backstory</label>
+        <textarea
+          name="backstory"
+          rows={6}
+          value={character.backstory || ''}
+          onChange={(e) => updateCharacter({ backstory: e.target.value })}
+          className="input-field mt-1 border-sky-600/50 focus:border-sky-400"
+        />
+      </div>
+    </div>
+  );
+}
+
+
+================================================================================
+FILE: src/components/tabs/ExportTab.jsx
+LINES: 24
+================================================================================
+import React from 'react';
+import { useCharacterStore } from '../../state/store';
+
+export default function ExportTab() {
+  const { character } = useCharacterStore();
+
+  if (!character) return <div className="p-4 text-white">Create a character to begin</div>;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(JSON.stringify(character, null, 2));
+    alert('Character JSON copied to clipboard!');
+  };
+
+  return (
+    <div className="p-6 bg-tab-orange/20 backdrop-blur-sm rounded-xl m-4">
+      <h2 className="text-2xl font-bold text-white drop-shadow-lg mb-4">💾 Export Character</h2>
+      <button
+        onClick={handleCopy}
+        className="btn-primary mb-4"
+      >
+        Copy JSON to Clipboard
+      </button>
+      <pre className="bg-dark-purple-950/80 border border-orange-600/50 text-gray-100 p-4 rounded-lg text-xs overflow-auto max-h-96">
+        {JSON.stringify(character, null, 2)}
+      </pre>
+    </div>
+  );
+}
+
+
+================================================================================
+FILE: src/components/tabs/CustomTab.jsx
+LINES: 9
+================================================================================
+import React from 'react';
+
+export default function CustomTab() {
+  return (
+    <div className="p-6 bg-tab-purple/20 backdrop-blur-sm rounded-xl m-4">
+      <h2 className="text-2xl font-bold text-white drop-shadow-lg mb-4">🎨 Custom Content</h2>
+      <p className="text-gray-300">Space for homebrew rules, custom items, or campaign notes.</p>
+    </div>
+  );
+}
+
+
+================================================================================
+FILE: src/data/dndRules.js
+LINES: 106
+================================================================================
+// D&D 5e Official Rules - Complete with Point Buy
+
+export const abilityScores = ['str', 'dex', 'con', 'int', 'wis', 'cha']
+
+export const abilityLabels = {
+  str: 'Strength', dex: 'Dexterity', con: 'Constitution',
+  int: 'Intelligence', wis: 'Wisdom', cha: 'Charisma',
+}
+
+// Ability Score Limits
+export const ABILITY_MIN = 1
+export const ABILITY_MAX = 20
+
+// Point Buy Rules (PHB p.13)
+export const pointBuyCosts = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 }
+export const pointBuyTotal = 27
+export const pointBuyMin = 8
+export const pointBuyMax = 15
+
+// Standard Array
+export const standardArray = [15, 14, 13, 12, 10, 8]
+
+// ASI Levels
+export const asiLevels = [4, 8, 12, 16, 19]
+
+// Proficiency Bonus
+export const getProficiencyBonus = (level) => {
+  if (level >= 17) return 6
+  if (level >= 13) return 5
+  if (level >= 9) return 4
+  if (level >= 5) return 3
+  return 2
+}
+
+// Racial ASI
+export const racialASI = {
+  human: { str: 1, dex: 1, con: 1, int: 1, wis: 1, cha: 1 },
+  elf: { dex: 2 }, dwarf: { con: 2 }, halfling: { dex: 2 },
+  dragonborn: { str: 2, cha: 1 }, gnome: { int: 2 },
+  'half-elf': { cha: 2 }, 'half-orc': { str: 2, con: 1 },
+  tiefling: { cha: 2, int: 1 },
+}
+
+// Class Saving Throws
+export const classSavingThrows = {
+  barbarian: ['str','con'], bard: ['dex','cha'], cleric: ['wis','cha'],
+  druid: ['int','wis'], fighter: ['str','con'], monk: ['str','dex'],
+  paladin: ['wis','cha'], ranger: ['str','dex'], rogue: ['dex','int'],
+  sorcerer: ['con','cha'], warlock: ['wis','cha'], wizard: ['int','wis'],
+}
+
+// Class Hit Dice
+export const classHitDice = {
+  barbarian: 12, bard: 8, cleric: 8, druid: 8,
+  fighter: 10, monk: 8, paladin: 10, ranger: 10,
+  rogue: 8, sorcerer: 6, warlock: 8, wizard: 6,
+}
+
+// Class Primary Abilities
+export const classPrimaryAbility = {
+  barbarian: 'str', bard: 'cha', cleric: 'wis', druid: 'wis',
+  fighter: 'str', monk: 'dex', paladin: 'cha', ranger: 'dex',
+  rogue: 'dex', sorcerer: 'cha', warlock: 'cha', wizard: 'int',
+}
+
+// Speed by Race
+export const racialSpeed = {
+  human: 30, elf: 30, dwarf: 25, halfling: 25,
+  dragonborn: 30, gnome: 25, 'half-elf': 30, 'half-orc': 30, tiefling: 30,
+}
+
+// Helper Functions
+export const getModifier = (score) => Math.floor((score - 10) / 2)
+
+export const calculateAC = (armorType, dexMod, shield = false) => {
+  const acTable = { 'none': 10 + dexMod, 'light': 11 + dexMod, 'medium': 12 + Math.min(dexMod, 2), 'heavy': 16 }
+  let ac = acTable[armorType] || acTable['none']
+  if (shield) ac += 2
+  return ac
+}
+
+export const calculateSpellSaveDC = (classType, abilities, proficiencyBonus) => {
+  const primaryAbility = classPrimaryAbility[classType] || 'wis'
+  return 8 + proficiencyBonus + getModifier(abilities[primaryAbility] || 10)
+}
+
+export const calculateAttackBonus = (classType, abilities, proficiencyBonus) => {
+  const primaryAbility = classPrimaryAbility[classType] || 'str'
+  return proficiencyBonus + getModifier(abilities[primaryAbility] || 10)
+}
+
+export const calculateCarryingCapacity = (strengthScore) => strengthScore * 15
+
+// Point Buy Validation
+export const getPointBuyCost = (abilities) => {
+  return Object.values(abilities).reduce((total, score) => total + (pointBuyCosts[score] || 0), 0)
+}
+
+export const isValidPointBuy = (abilities) => {
+  const cost = getPointBuyCost(abilities)
+  const allInRange = Object.values(abilities).every(s => s >= pointBuyMin && s <= pointBuyMax)
+  return cost <= pointBuyTotal && allInRange
+}
+
+export const validateAbilityForPointBuy = (score) => {
+  if (score < pointBuyMin) return { valid: false, error: `Minimum is ${pointBuyMin}` }
+  if (score > pointBuyMax) return { valid: false, error: `Maximum is ${pointBuyMax}` }
+  return { valid: true }
+}
+
+// Skills
+export const skills = {
+  acrobatics: 'dex', animalHandling: 'wis', arcana: 'int', athletics: 'str',
+  deception: 'cha', history: 'int', insight: 'wis', intimidation: 'cha',
+  investigation: 'int', medicine: 'wis', nature: 'int', perception: 'wis',
+  performance: 'cha', persuasion: 'cha', religion: 'int', sleightOfHand: 'dex',
+  stealth: 'dex', survival: 'wis',
+}
+
+export const backgroundSkills = {
+  acolyte: ['insight','religion'], charlatan: ['deception','sleightOfHand'],
+  criminal: ['deception','stealth'], entertainer: ['acrobatics','performance'],
+  'folk-hero': ['animalHandling','survival'], 'guild-artisan': ['insight','persuasion'],
+  hermit: ['medicine','religion'], noble: ['history','persuasion'],
+  outlander: ['athletics','survival'], sage: ['arcana','history'],
+  sailor: ['athletics','perception'], soldier: ['athletics','intimidation'],
+  urchin: ['sleightOfHand','stealth'],
+}
+
+
+================================================================================
+FILE: src/data/raceData.js
+LINES: 620
+================================================================================
+// D&D 5e Races - Improved Structure for Feature Implementation
+
+export const raceData = {
+  human: {
+    key: 'human',
+    name: 'Human',
+    description: 'Humans are the most adaptable and ambitious people among the common races. They have widely varying tastes, morals, and customs.',
+    speed: 30,
+    size: 'Medium',
+    ageRange: { min: 18, max: 80 },
+    heightRange: { min: 60, max: 78 },
+    weightRange: { min: 120, max: 250 },
+    abilityScoreIncrease: { str: 1, dex: 1, con: 1, int: 1, wis: 1, cha: 1 },
+    features: [
+      {
+        name: 'Ability Score Increase',
+        description: 'Your ability scores each increase by 1.',
+        type: 'ability',
+      },
+      {
+        name: 'Size',
+        description: 'Humans are Medium creatures.',
+        type: 'size',
+      },
+      {
+        name: 'Speed',
+        description: 'Your base walking speed is 30 feet.',
+        type: 'speed',
+      },
+      {
+        name: 'Languages',
+        description: 'You can speak, read, and write Common and one extra language of your choice.',
+        type: 'language',
+      },
+    ],
+    subraces: {
+      variant: {
+        key: 'human.variant',
+        name: 'Variant Human',
+        description: 'Variant humans gain different abilities, reflecting their diverse nature.',
+        abilityScoreIncrease: {},
+        features: [
+          {
+            name: 'Ability Score Increase',
+            description: 'Two different ability scores of your choice increase by 1.',
+            type: 'ability',
+          },
+          {
+            name: 'Skills',
+            description: 'You gain proficiency in one skill of your choice.',
+            type: 'skill',
+          },
+          {
+            name: 'Feat',
+            description: 'You gain one feat of your choice.',
+            type: 'feat',
+          },
+        ],
+      },
+    },
+  },
+  
+  elf: {
+    key: 'elf',
+    name: 'Elf',
+    description: 'Elves are a magical people of otherworldly grace, living in the world but not entirely part of it.',
+    speed: 30,
+    size: 'Medium',
+    ageRange: { min: 100, max: 750 },
+    heightRange: { min: 60, max: 72 },
+    weightRange: { min: 100, max: 180 },
+    abilityScoreIncrease: { dex: 2 },
+    features: [
+      {
+        name: 'Darkvision',
+        description: 'You can see in dim light within 60 feet as if it were bright light, and in darkness as if it were dim light.',
+        type: 'senses',
+      },
+      {
+        name: 'Keen Senses',
+        description: 'You have proficiency in the Perception skill.',
+        type: 'skill',
+        skill: 'perception',
+      },
+      {
+        name: 'Fey Ancestry',
+        description: 'You have advantage on saving throws against being charmed, and magic can\'t put you to sleep.',
+        type: 'defense',
+      },
+      {
+        name: 'Trance',
+        description: 'Elves don\'t need to sleep. Instead, they meditate deeply for 4 hours a day.',
+        type: 'rest',
+      },
+      {
+        name: 'Languages',
+        description: 'You can speak, read, and write Common and Elvish.',
+        type: 'language',
+      },
+    ],
+    subraces: {
+      highElf: {
+        key: 'elf.highElf',
+        name: 'High Elf',
+        description: 'High elves are proud and aloof, with a culture centered on art, elegance, and magical prowess.',
+        abilityScoreIncrease: { int: 1 },
+        features: [
+          {
+            name: 'Cantrip',
+            description: 'You know one cantrip of your choice from the wizard spell list. Intelligence is your spellcasting ability for it.',
+            type: 'spell',
+          },
+          {
+            name: 'Elf Weapon Training',
+            description: 'You have proficiency with the longsword, shortsword, shortbow, and longbow.',
+            type: 'weapon',
+            weapons: ['longsword', 'shortsword', 'shortbow', 'longbow'],
+          },
+          {
+            name: 'Extra Language',
+            description: 'You can speak, read, and write one extra language of your choice.',
+            type: 'language',
+          },
+        ],
+      },
+      woodElf: {
+        key: 'elf.woodElf',
+        name: 'Wood Elf',
+        description: 'Wood elves are wild and free-spirited, living in harmony with nature.',
+        abilityScoreIncrease: { wis: 1 },
+        features: [
+          {
+            name: 'Fleet of Foot',
+            description: 'Your base walking speed increases to 35 feet.',
+            type: 'speed',
+            speed: 35,
+          },
+          {
+            name: 'Mask of the Wild',
+            description: 'You can attempt to hide even when you are only lightly obscured by foliage, heavy rain, falling snow, mist, and other natural phenomena.',
+            type: 'skill',
+          },
+          {
+            name: 'Elf Weapon Training',
+            description: 'You have proficiency with the longsword, shortsword, shortbow, and longbow.',
+            type: 'weapon',
+            weapons: ['longsword', 'shortsword', 'shortbow', 'longbow'],
+          },
+        ],
+      },
+      drow: {
+        key: 'elf.drow',
+        name: 'Drow (Dark Elf)',
+        description: 'Drow are dark elves who dwell in the Underdark, known for their cunning and mastery of dark magic.',
+        abilityScoreIncrease: { cha: 1 },
+        features: [
+          {
+            name: 'Superior Darkvision',
+            description: 'Your darkvision has a range of 120 feet.',
+            type: 'senses',
+            darkvision: 120,
+          },
+          {
+            name: 'Sunlight Sensitivity',
+            description: 'You have disadvantage on attack rolls and Perception checks that rely on sight when you, the target, or whatever you are trying to perceive is in direct sunlight.',
+            type: 'weakness',
+          },
+          {
+            name: 'Drow Magic',
+            description: 'You know the dancing lights cantrip. At 3rd level, you can cast faerie fire once. At 5th level, you can cast darkness once.',
+            type: 'spell',
+          },
+          {
+            name: 'Drow Weapon Training',
+            description: 'You have proficiency with rapiers, shortswords, and hand crossbows.',
+            type: 'weapon',
+            weapons: ['rapier', 'shortsword', 'handCrossbow'],
+          },
+        ],
+      },
+    },
+  },
+  
+  dwarf: {
+    key: 'dwarf',
+    name: 'Dwarf',
+    description: 'Bold and hardy, dwarves are known as skilled warriors, miners, and workers of stone and metal.',
+    speed: 25,
+    size: 'Medium',
+    ageRange: { min: 50, max: 350 },
+    heightRange: { min: 48, max: 60 },
+    weightRange: { min: 150, max: 250 },
+    abilityScoreIncrease: { con: 2 },
+    features: [
+      {
+        name: 'Darkvision',
+        description: 'You can see in dim light within 60 feet as if it were bright light.',
+        type: 'senses',
+      },
+      {
+        name: 'Dwarven Resilience',
+        description: 'You have advantage on saving throws against poison, and you have resistance against poison damage.',
+        type: 'defense',
+      },
+      {
+        name: 'Dwarven Combat Training',
+        description: 'You have proficiency with the battleaxe, handaxe, light hammer, and warhammer.',
+        type: 'weapon',
+        weapons: ['battleaxe', 'handaxe', 'lightHammer', 'warhammer'],
+      },
+      {
+        name: 'Tool Proficiency',
+        description: 'You gain proficiency with the artisan\'s tools of your choice.',
+        type: 'tool',
+      },
+      {
+        name: 'Stonecunning',
+        description: 'Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient and add double your proficiency bonus.',
+        type: 'skill',
+      },
+      {
+        name: 'Languages',
+        description: 'You can speak, read, and write Common and Dwarvish.',
+        type: 'language',
+      },
+    ],
+    subraces: {
+      hillDwarf: {
+        key: 'dwarf.hillDwarf',
+        name: 'Hill Dwarf',
+        description: 'Hill dwarves are wise and sturdy, with a deep connection to the earth.',
+        abilityScoreIncrease: { wis: 1 },
+        features: [
+          {
+            name: 'Dwarven Toughness',
+            description: 'Your hit point maximum increases by 1, and it increases by 1 every time you gain a level.',
+            type: 'hp',
+          },
+        ],
+      },
+      mountainDwarf: {
+        key: 'dwarf.mountainDwarf',
+        name: 'Mountain Dwarf',
+        description: 'Mountain dwarves are strong and fierce warriors, adapted to life in high peaks.',
+        abilityScoreIncrease: { str: 2 },
+        features: [
+          {
+            name: 'Dwarven Armor Training',
+            description: 'You have proficiency with light and medium armor.',
+            type: 'armor',
+            armor: ['light', 'medium'],
+          },
+        ],
+      },
+    },
+  },
+  
+  halfling: {
+    key: 'halfling',
+    name: 'Halfling',
+    description: 'The comforts of home are the goals of most halflings: a place to settle in peace and quiet.',
+    speed: 25,
+    size: 'Small',
+    ageRange: { min: 20, max: 150 },
+    heightRange: { min: 36, max: 42 },
+    weightRange: { min: 60, max: 100 },
+    abilityScoreIncrease: { dex: 2 },
+    features: [
+      {
+        name: 'Lucky',
+        description: 'When you roll a 1 on an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll.',
+        type: 'special',
+      },
+      {
+        name: 'Brave',
+        description: 'You have advantage on saving throws against being frightened.',
+        type: 'defense',
+      },
+      {
+        name: 'Halfling Nimbleness',
+        description: 'You can move through the space of any creature that is of a size larger than yours.',
+        type: 'movement',
+      },
+      {
+        name: 'Languages',
+        description: 'You can speak, read, and write Common and Halfling.',
+        type: 'language',
+      },
+    ],
+    subraces: {
+      lightfoot: {
+        key: 'halfling.lightfoot',
+        name: 'Lightfoot Halfling',
+        description: 'Lightfoot halflings are stealthy and charming, able to hide even when observed.',
+        abilityScoreIncrease: { cha: 1 },
+        features: [
+          {
+            name: 'Naturally Stealthy',
+            description: 'You can attempt to hide even when you are obscured only by a creature that is at least one size larger than you.',
+            type: 'skill',
+          },
+        ],
+      },
+      stout: {
+        key: 'halfling.stout',
+        name: 'Stout Halfling',
+        description: 'Stout halflings are hardy and resistant to poison.',
+        abilityScoreIncrease: { con: 1 },
+        features: [
+          {
+            name: 'Stout Resilience',
+            description: 'You have advantage on saving throws against poison, and you have resistance against poison damage.',
+            type: 'defense',
+          },
+        ],
+      },
+    },
+  },
+  
+  dragonborn: {
+    key: 'dragonborn',
+    name: 'Dragonborn',
+    description: 'Dragonborn look very much like dragons standing erect in humanoid form, though they lack wings or a tail.',
+    speed: 30,
+    size: 'Medium',
+    ageRange: { min: 15, max: 80 },
+    heightRange: { min: 72, max: 84 },
+    weightRange: { min: 200, max: 350 },
+    abilityScoreIncrease: { str: 2, cha: 1 },
+    features: [
+      {
+        name: 'Draconic Ancestry',
+        description: 'Choose a dragon type. You gain damage resistance and a breath weapon based on your ancestry.',
+        type: 'special',
+        options: ['black', 'blue', 'brass', 'bronze', 'copper', 'gold', 'green', 'red', 'silver', 'white'],
+      },
+      {
+        name: 'Breath Weapon',
+        description: 'You can use your action to exhale destructive energy. Damage type depends on your ancestry.',
+        type: 'attack',
+      },
+      {
+        name: 'Damage Resistance',
+        description: 'You have resistance to the damage type associated with your draconic ancestry.',
+        type: 'defense',
+      },
+      {
+        name: 'Languages',
+        description: 'You can speak, read, and write Common and Draconic.',
+        type: 'language',
+      },
+    ],
+    subraces: {},
+  },
+  
+  gnome: {
+    key: 'gnome',
+    name: 'Gnome',
+    description: 'A gnome\'s energy and enthusiasm for living shines through every inch of his or her tiny body.',
+    speed: 25,
+    size: 'Small',
+    ageRange: { min: 100, max: 500 },
+    heightRange: { min: 40, max: 48 },
+    weightRange: { min: 60, max: 90 },
+    abilityScoreIncrease: { int: 2 },
+    features: [
+      {
+        name: 'Darkvision',
+        description: 'You can see in dim light within 60 feet as if it were bright light.',
+        type: 'senses',
+      },
+      {
+        name: 'Gnome Cunning',
+        description: 'You have advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.',
+        type: 'defense',
+      },
+      {
+        name: 'Languages',
+        description: 'You can speak, read, and write Common and Gnomish.',
+        type: 'language',
+      },
+    ],
+    subraces: {
+      forestGnome: {
+        key: 'gnome.forestGnome',
+        name: 'Forest Gnome',
+        description: 'Forest gnomes are reclusive and elusive, living in deep woods.',
+        abilityScoreIncrease: { dex: 1 },
+        features: [
+          {
+            name: 'Natural Illusionist',
+            description: 'You know the minor illusion cantrip.',
+            type: 'spell',
+          },
+          {
+            name: 'Speak with Small Beasts',
+            description: 'Through sounds and gestures, you can communicate simple ideas with Small or smaller beasts.',
+            type: 'special',
+          },
+        ],
+      },
+      rockGnome: {
+        key: 'gnome.rockGnome',
+        name: 'Rock Gnome',
+        description: 'Rock gnomes are tinkerers and inventors, obsessed with mechanical devices.',
+        abilityScoreIncrease: { con: 1 },
+        features: [
+          {
+            name: 'Artificer\'s Lore',
+            description: 'Whenever you make an Intelligence (History) check related to magic items, alchemical objects, or technological devices, you can add twice your proficiency bonus.',
+            type: 'skill',
+          },
+          {
+            name: 'Tinker',
+            description: 'You have proficiency with artisan\'s tools (tinker\'s tools). You can craft clockwork devices.',
+            type: 'tool',
+          },
+        ],
+      },
+    },
+  },
+  
+  halfElf: {
+    key: 'halfElf',
+    name: 'Half-Elf',
+    description: 'Half-elves are wanderers who dwell on the borders of both human and elven societies.',
+    speed: 30,
+    size: 'Medium',
+    ageRange: { min: 20, max: 180 },
+    heightRange: { min: 60, max: 72 },
+    weightRange: { min: 100, max: 200 },
+    abilityScoreIncrease: { cha: 2 },
+    features: [
+      {
+        name: 'Darkvision',
+        description: 'You can see in dim light within 60 feet as if it were bright light.',
+        type: 'senses',
+      },
+      {
+        name: 'Fey Ancestry',
+        description: 'You have advantage on saving throws against being charmed, and magic can\'t put you to sleep.',
+        type: 'defense',
+      },
+      {
+        name: 'Skill Versatility',
+        description: 'You gain proficiency in two skills of your choice.',
+        type: 'skill',
+        count: 2,
+      },
+      {
+        name: 'Languages',
+        description: 'You can speak, read, and write Common, Elvish, and one extra language of your choice.',
+        type: 'language',
+      },
+    ],
+    subraces: {},
+  },
+  
+  halfOrc: {
+    key: 'halfOrc',
+    name: 'Half-Orc',
+    description: 'Half-orcs are a blend of human and orc heritage. They are strong, fierce, and often feared.',
+    speed: 30,
+    size: 'Medium',
+    ageRange: { min: 14, max: 75 },
+    heightRange: { min: 66, max: 84 },
+    weightRange: { min: 180, max: 300 },
+    abilityScoreIncrease: { str: 2, con: 1 },
+    features: [
+      {
+        name: 'Darkvision',
+        description: 'You can see in dim light within 60 feet as if it were bright light.',
+        type: 'senses',
+      },
+      {
+        name: 'Menacing',
+        description: 'You gain proficiency in the Intimidation skill.',
+        type: 'skill',
+        skill: 'intimidation',
+      },
+      {
+        name: 'Relentless Endurance',
+        description: 'When you are reduced to 0 hit points but not killed outright, you can drop to 1 hit point instead. You can\'t use this feature again until you finish a long rest.',
+        type: 'defense',
+      },
+      {
+        name: 'Savage Attacks',
+        description: 'When you score a critical hit with a melee weapon attack, you can roll one of the weapon\'s damage dice one additional time and add it to the extra damage.',
+        type: 'attack',
+      },
+      {
+        name: 'Languages',
+        description: 'You can speak, read, and write Common and Orc.',
+        type: 'language',
+      },
+    ],
+    subraces: {},
+  },
+  
+  tiefling: {
+    key: 'tiefling',
+    name: 'Tiefling',
+    description: 'Tieflings are humans with infernal heritage, bearing the mark of devils or demons.',
+    speed: 30,
+    size: 'Medium',
+    ageRange: { min: 18, max: 100 },
+    heightRange: { min: 60, max: 72 },
+    weightRange: { min: 120, max: 220 },
+    abilityScoreIncrease: { cha: 2, int: 1 },
+    features: [
+      {
+        name: 'Darkvision',
+        description: 'You can see in dim light within 60 feet as if it were bright light.',
+        type: 'senses',
+      },
+      {
+        name: 'Hellish Resistance',
+        description: 'You have resistance to fire damage.',
+        type: 'defense',
+      },
+      {
+        name: 'Infernal Legacy',
+        description: 'You know the thaumaturgy cantrip. At 3rd level, you can cast hellish rebuke once. At 5th level, you can cast darkness once.',
+        type: 'spell',
+      },
+      {
+        name: 'Languages',
+        description: 'You can speak, read, and write Common and Infernal.',
+        type: 'language',
+      },
+    ],
+    subraces: {},
+  },
+}
+
+// Helper function to get all races (including subraces)
+export const getAllRaces = () => {
+  const races = []
+  
+  Object.entries(raceData).forEach(([key, race]) => {
+    races.push({
+      key,
+      name: race.name,
+      description: race.description,
+      isSubrace: false,
+    })
+    
+    if (race.subraces) {
+      Object.entries(race.subraces).forEach(([subKey, subrace]) => {
+        races.push({
+          key: subrace.key,
+          name: subrace.name,
+          description: subrace.description,
+          parentRace: key,
+          isSubrace: true,
+        })
+      })
+    }
+  })
+  
+  return races
+}
+
+// Helper to get race or subrace data
+export const getRaceData = (raceKey) => {
+  if (raceKey.includes('.')) {
+    const [baseKey, subKey] = raceKey.split('.')
+    const baseRace = raceData[baseKey]
+    if (baseRace && baseRace.subraces[subKey]) {
+      return {
+        ...baseRace,
+        ...baseRace.subraces[subKey],
+        isSubrace: true,
+        baseRaceName: baseRace.name,
+      }
+    }
+  }
+  return { ...raceData[raceKey], isSubrace: false }
+}
+
+// Get all features for a race (base + subrace)
+export const getRaceFeatures = (raceKey) => {
+  const race = getRaceData(raceKey)
+  const features = [...(race.features || [])]
+  
+  if (race.isSubrace) {
+    const baseRace = raceData[raceKey.split('.')[0]]
+    if (baseRace) {
+      // Add base race features that aren't overridden
+      baseRace.features.forEach(feature => {
+        if (!features.find(f => f.name === feature.name)) {
+          features.push(feature)
+        }
+      })
+    }
+  }
+  
+  return features
+}
+
+// Appearance options (kept from original)
+export const appearanceOptions = {
+  eyeColors: [
+    'Brown', 'Blue', 'Green', 'Hazel', 'Gray', 'Amber',
+    'Violet', 'Red', 'Gold', 'Silver', 'Black', 'White',
+  ],
+  hairColors: [
+    'Black', 'Brown', 'Blonde', 'Red', 'Gray', 'White',
+    'Auburn', 'Silver', 'Blue', 'Green', 'Purple',
+  ],
+  hairStyles: [
+    'Short', 'Medium', 'Long', 'Bald', 'Buzz Cut',
+    'Ponytail', 'Braids', 'Dreadlocks', 'Curly', 'Wavy',
+  ],
+  skinTones: [
+    'Fair', 'Light', 'Medium', 'Olive', 'Tan',
+    'Dark', 'Deep', 'Pale', 'Bronze', 'Ebony',
+  ],
+}
+
+// Helper to convert inches to feet/inches
+export const inchesToFeetInches = (inches) => {
+  const feet = Math.floor(inches / 12)
+  const remainingInches = inches % 12
+  return `${feet}'${remainingInches}"`
+}
+
+
+================================================================================
+FILE: src/data/skillsData.js
+LINES: 132
+================================================================================
+// D&D 5e Skills - Complete List
+
+export const skills = {
+  acrobatics: {
+    name: 'Acrobatics',
+    ability: 'dex',
+    description: 'Balance, tumble, escape bonds',
+  },
+  animalHandling: {
+    name: 'Animal Handling',
+    ability: 'wis',
+    description: 'Calm animals, intuit intentions',
+  },
+  arcana: {
+    name: 'Arcana',
+    ability: 'int',
+    description: 'Recall lore about spells, magic items',
+  },
+  athletics: {
+    name: 'Athletics',
+    ability: 'str',
+    description: 'Climb, jump, swim, grapple',
+  },
+  deception: {
+    name: 'Deception',
+    ability: 'cha',
+    description: 'Lie, con, bluff others',
+  },
+  history: {
+    name: 'History',
+    ability: 'int',
+    description: 'Recall lore about history',
+  },
+  insight: {
+    name: 'Insight',
+    ability: 'wis',
+    description: 'Determine true intentions',
+  },
+  intimidation: {
+    name: 'Intimidation',
+    ability: 'cha',
+    description: 'Influence through threats',
+  },
+  investigation: {
+    name: 'Investigation',
+    ability: 'int',
+    description: 'Deduce clues, solve puzzles',
+  },
+  medicine: {
+    name: 'Medicine',
+    ability: 'wis',
+    description: 'Diagnose wounds, stabilize dying',
+  },
+  nature: {
+    name: 'Nature',
+    ability: 'int',
+    description: 'Recall lore about terrain, plants',
+  },
+  perception: {
+    name: 'Perception',
+    ability: 'wis',
+    description: 'Spot, hear, notice things',
+  },
+  performance: {
+    name: 'Performance',
+    ability: 'cha',
+    description: 'Delight audience with performance',
+  },
+  persuasion: {
+    name: 'Persuasion',
+    ability: 'cha',
+    description: 'Influence through diplomacy',
+  },
+  religion: {
+    name: 'Religion',
+    ability: 'int',
+    description: 'Recall lore about deities, rites',
+  },
+  sleightOfHand: {
+    name: 'Sleight of Hand',
+    ability: 'dex',
+    description: 'Pick pockets, conceal objects',
+  },
+  stealth: {
+    name: 'Stealth',
+    ability: 'dex',
+    description: 'Hide, move silently',
+  },
+  survival: {
+    name: 'Survival',
+    ability: 'wis',
+    description: 'Track, hunt, navigate wilderness',
+  },
+}
+
+// Skills grouped by ability
+export const skillsByAbility = {
+  str: ['athletics'],
+  dex: ['acrobatics', 'sleightOfHand', 'stealth'],
+  int: ['arcana', 'history', 'investigation', 'nature', 'religion'],
+  wis: ['animalHandling', 'insight', 'medicine', 'perception', 'survival'],
+  cha: ['deception', 'intimidation', 'performance', 'persuasion'],
+}
+
+// Class skill proficiencies (number they get)
+export const classSkillProficiencies = {
+  barbarian: { count: 2, from: ['animalHandling', 'athletics', 'intimidation', 'nature', 'perception', 'survival'] },
+  bard: { count: 3, from: Object.keys(skills) },
+  cleric: { count: 2, from: ['history', 'insight', 'medicine', 'persuasion', 'religion'] },
+  druid: { count: 2, from: ['arcana', 'animalHandling', 'insight', 'medicine', 'nature', 'perception', 'religion', 'survival'] },
+  fighter: { count: 2, from: ['acrobatics', 'animalHandling', 'athletics', 'history', 'insight', 'intimidation', 'perception', 'survival'] },
+  monk: { count: 2, from: ['acrobatics', 'athletics', 'history', 'insight', 'religion', 'stealth'] },
+  paladin: { count: 2, from: ['athletics', 'insight', 'intimidation', 'medicine', 'persuasion', 'religion'] },
+  ranger: { count: 3, from: ['animalHandling', 'athletics', 'insight', 'investigation', 'nature', 'perception', 'stealth', 'survival'] },
+  rogue: { count: 4, from: ['acrobatics', 'athletics', 'deception', 'insight', 'intimidation', 'investigation', 'perception', 'performance', 'persuasion', 'sleightOfHand', 'stealth'] },
+  sorcerer: { count: 2, from: ['arcana', 'deception', 'insight', 'intimidation', 'persuasion', 'religion'] },
+  warlock: { count: 2, from: ['arcana', 'deception', 'history', 'intimidation', 'investigation', 'nature', 'religion'] },
+  wizard: { count: 2, from: ['arcana', 'history', 'insight', 'investigation', 'medicine', 'religion'] },
+}
+
+// Background skill proficiencies
+export const backgroundSkills = {
+  acolyte: ['insight', 'religion'],
+  charlatan: ['deception', 'sleightOfHand'],
+  criminal: ['deception', 'stealth'],
+  entertainer: ['acrobatics', 'performance'],
+  'folk-hero': ['animalHandling', 'survival'],
+  'guild-artisan': ['insight', 'persuasion'],
+  hermit: ['medicine', 'religion'],
+  noble: ['history', 'persuasion'],
+  outlander: ['athletics', 'survival'],
+  sage: ['arcana', 'history'],
+  sailor: ['athletics', 'perception'],
+  soldier: ['athletics', 'intimidation'],
+  urchin: ['sleightOfHand', 'stealth'],
+}
+
+
+================================================================================
+FILE: src/lib/dice.js
+LINES: 132
+================================================================================
+// D&D Dice Rolling Utilities
+
+// Roll a single die (e.g., rollDie(6) = 1-6)
+export const rollDie = (sides) => Math.floor(Math.random() * sides) + 1
+
+// Roll multiple dice and sum (e.g., rollDice(4, 6) = 4d6)
+export const rollDice = (count, sides) => {
+  let total = 0
+  const rolls = []
+  for (let i = 0; i < count; i++) {
+    const roll = rollDie(sides)
+    rolls.push(roll)
+    total += roll
+  }
+  return { total, rolls }
+}
+
+// Roll 4d6 drop lowest - RETURNS FULL BREAKDOWN
+export const roll4d6DropLowest = () => {
+  const rolls = []
+  for (let i = 0; i < 4; i++) {
+    rolls.push(rollDie(6))
+  }
+  const sorted = [...rolls].sort((a, b) => a - b)
+  const dropped = sorted[0]
+  const kept = sorted.slice(1)
+  const total = kept.reduce((a, b) => a + b, 0)
+  
+  return {
+    total,
+    allRolls: rolls,
+    sortedRolls: sorted,
+    dropped,
+    kept,
+    breakdown: `${rolls.join(', ')} â†’ drop ${dropped} â†’ ${kept.join(' + ')} = ${total}`,
+  }
+}
+
+// Generate 6 ability scores with full roll breakdowns
+export const generateAbilityScores = () => {
+  const abilities = ['str', 'dex', 'con', 'int', 'wis', 'cha']
+  const results = []
+  
+  for (let i = 0; i < 6; i++) {
+    const roll = roll4d6DropLowest()
+    results.push({
+      ability: abilities[i],
+      score: roll.total,
+      breakdown: roll.breakdown,
+      allRolls: roll.allRolls,
+      dropped: roll.dropped,
+      kept: roll.kept,
+    })
+  }
+  
+  return results
+}
+
+// Roll d20 with modifier (for attacks, saves, checks)
+export const rollD20 = (modifier = 0, { advantage = false, disadvantage = false } = {}) => {
+  let roll1 = rollDie(20)
+  let roll2 = null
+  let finalRoll = roll1
+  
+  if (advantage) {
+    roll2 = rollDie(20)
+    finalRoll = Math.max(roll1, roll2)
+  } else if (disadvantage) {
+    roll2 = rollDie(20)
+    finalRoll = Math.min(roll1, roll2)
+  }
+  
+  const total = finalRoll + modifier
+  return {
+    roll: finalRoll,
+    rolls: roll2 ? [roll1, roll2] : [roll1],
+    modifier,
+    total,
+    advantage,
+    disadvantage,
+    natural20: finalRoll === 20,
+    natural1: finalRoll === 1,
+  }
+}
+
+// Roll initiative (d20 + DEX mod)
+export const rollInitiative = (dexModifier) => {
+  return rollD20(dexModifier)
+}
+
+// Roll a skill check (d20 + ability mod + proficiency if applicable)
+export const rollSkillCheck = (abilityMod, proficiencyBonus = 0, proficient = false) => {
+  const totalMod = abilityMod + (proficient ? proficiencyBonus : 0)
+  return rollD20(totalMod)
+}
+
+// Roll a saving throw (d20 + ability mod + proficiency if applicable)
+export const rollSavingThrow = (abilityMod, proficiencyBonus = 0, proficient = false) => {
+  const totalMod = abilityMod + (proficient ? proficiencyBonus : 0)
+  return rollD20(totalMod)
+}
+
+// Roll an attack (d20 + attack bonus)
+export const rollAttack = (attackBonus, { advantage = false, disadvantage = false } = {}) => {
+  return rollD20(attackBonus, { advantage, disadvantage })
+}
+
+// Roll death saving throw (pure d20, no modifier)
+export const rollDeathSave = () => {
+  const roll = rollDie(20)
+  return {
+    roll,
+    success: roll >= 10,
+    natural20: roll === 20,
+    natural1: roll === 1,
+    instantStabilize: roll === 20,
+    instantFail: roll === 1,
+  }
+}
+
+// Roll damage (e.g., "1d8+3" for a longsword with +3 STR)
+export const rollDamage = (diceNotation, modifier = 0) => {
+  const match = diceNotation.match(/^(\d*)d(\d+)([+-]\d+)?$/)
+  if (!match) return { total: modifier, error: 'Invalid dice notation' }
+  
+  const [, countStr, sidesStr, modStr] = match
+  const count = countStr ? parseInt(countStr) : 1
+  const sides = parseInt(sidesStr)
+  const extraMod = modStr ? parseInt(modStr) : 0
+  
+  const { total: diceTotal, rolls } = rollDice(count, sides)
+  const total = diceTotal + extraMod + modifier
+  
+  return { total, diceTotal, modifier: extraMod + modifier, rolls, notation: diceNotation }
+}
+
+// Format roll result for display
+export const formatRoll = (roll) => {
+  if (roll.natural20) return `ðŸŽ² NATURAL 20!`
+  if (roll.natural1) return `ðŸŽ² NATURAL 1!`
+  if (roll.advantage) return `ðŸŽ² ${roll.rolls[0]} or ${roll.rolls[1]} â†’ ${roll.roll}`
+  if (roll.disadvantage) return `ðŸŽ² ${roll.rolls[0]} or ${roll.rolls[1]} â†’ ${roll.roll}`
+  return `ðŸŽ² ${roll.roll}`
+}
+
+
+================================================================================
+FILE: src/state/store.js
+LINES: 378
+================================================================================
+import { create } from 'zustand'
+import { 
+  racialASI, classSavingThrows, classHitDice, getProficiencyBonus,
+  racialSpeed, getModifier, calculateAC, isValidPointBuy, pointBuyCosts,
+  pointBuyTotal, pointBuyMin, pointBuyMax, ABILITY_MIN, ABILITY_MAX,
+  calculateSpellSaveDC, calculateAttackBonus, calculateCarryingCapacity,
+  asiLevels, classPrimaryAbility, standardArray, getPointBuyCost,
+} from '../data/dndRules'
+import {
+  rollD20, rollDamage, rollInitiative,
+  rollSkillCheck, rollSavingThrow, rollAttack, rollDeathSave,
+  generateAbilityScores, formatRoll, rollDie,
+} from '../lib/dice'
+import { skills, classSkillProficiencies, backgroundSkills } from '../data/skillsData'
+import { raceData, getRaceData } from '../data/raceData'
+
+const genId = () => Math.random().toString(36).slice(2)
+
+export const useCharacterStore = create(
+  (set, get) => ({
+    character: null,
+    characters: [],
+    rollHistory: [],
+    validationErrors: [],
+    rollBreakdowns: {},
+
+    createCharacter: (name, statMethod = 'pointbuy') =>
+      set((state) => {
+        let abilities = { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }
+        let rollResults = []
+        let rollBreakdowns = {}
+        
+        if (statMethod === 'standard') {
+          abilities = { str: 15, dex: 14, con: 13, int: 12, wis: 10, cha: 8 }
+        } else if (statMethod === 'roll') {
+          const scores = generateAbilityScores()
+          abilities = {}
+          scores.forEach(result => {
+            abilities[result.ability] = result.score
+            rollBreakdowns[result.ability] = result.breakdown
+          })
+          rollResults = scores.map(r => ({
+            ability: r.ability,
+            result: r.breakdown,
+            timestamp: Date.now(),
+          }))
+        }
+
+        const newCharacter = {
+          id: genId(), name: name || 'New Character',
+          race: '', subrace: '', class: '', subclass: '', background: '',
+          level: 1, alignment: '',
+          age: '', gender: '', height: '', weight: '',
+          eyes: '', hair: '', hairStyle: '', skin: '', favoriteColor: '',
+          abilities,
+          baseAbilities: { ...abilities }, // Store base scores before racial bonuses
+          modifiers: { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 },
+          savingThrows: { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 },
+          skillProficiencies: [],
+          proficiencyBonus: 2,
+          hitPoints: 0, maxHitPoints: 0, hpHistory: [],
+          armorClass: 10, speed: 30, initiative: 0,
+          spellSaveDC: 0, attackBonus: 0,
+          carryingCapacity: 150, pushDragLift: 300,
+          asiAvailable: 0, asiUsed: 0,
+          personalityTraits: '', ideals: '', bonds: '', flaws: '', backstory: '',
+          armorType: 'none', hasShield: false, weapons: [], equipment: [],
+          statMethod: statMethod,
+          activeStatTab: statMethod,
+          createdAt: Date.now(), updatedAt: Date.now(),
+        }
+        
+        const calculated = get().calculateDerivedStats(newCharacter)
+        
+        return {
+          character: calculated,
+          characters: [...state.characters, calculated],
+          rollHistory: rollResults.length ? [...state.rollHistory, ...rollResults] : state.rollHistory,
+          rollBreakdowns,
+          validationErrors: [],
+        }
+      }),
+
+    setActiveStatTab: (tab) => set((state) => {
+      if (!state.character) return state
+      
+      let abilities = { ...state.character.baseAbilities }
+      let rollResults = []
+      let rollBreakdowns = {}
+      
+      if (tab === 'standard') {
+        abilities = { str: 15, dex: 14, con: 13, int: 12, wis: 10, cha: 8 }
+      } else if (tab === 'roll') {
+        const scores = generateAbilityScores()
+        abilities = {}
+        scores.forEach(result => {
+          abilities[result.ability] = result.score
+          rollBreakdowns[result.ability] = result.breakdown
+        })
+        rollResults = scores.map(r => ({
+          ability: r.ability,
+          result: r.breakdown,
+          timestamp: Date.now(),
+        }))
+      }
+      
+      const updated = { 
+        ...state.character, 
+        baseAbilities: { ...abilities },
+        abilities: { ...abilities },
+        statMethod: tab,
+        activeStatTab: tab,
+      }
+      
+      return {
+        character: get().calculateDerivedStats(updated),
+        rollBreakdowns: tab === 'roll' ? rollBreakdowns : state.rollBreakdowns,
+        rollHistory: rollResults.length ? [...(state.rollHistory || []), ...rollResults] : state.rollHistory,
+      }
+    }),
+
+    updateCharacter: (key, value) =>
+      set((state) => {
+        if (!state.character) return state
+        const updated = { ...state.character, [key]: value, updatedAt: Date.now() }
+        if (['race', 'class', 'level', 'abilities', 'armorType', 'hasShield', 'background'].includes(key)) {
+          return { character: get().calculateDerivedStats(updated) }
+        }
+        return { character: updated }
+      }),
+
+    updateAbility: (ability, value) =>
+      set((state) => {
+        if (!state.character) return state
+        const numValue = parseInt(value) || 10
+        let validationErrors = []
+        
+        if (numValue < ABILITY_MIN) validationErrors.push(`${ability.toUpperCase()} cannot be below ${ABILITY_MIN}`)
+        if (numValue > ABILITY_MAX) validationErrors.push(`${ability.toUpperCase()} cannot exceed ${ABILITY_MAX}`)
+        
+        if (state.character.statMethod === 'pointbuy') {
+          if (numValue < pointBuyMin) validationErrors.push(`${ability.toUpperCase()} minimum for Point Buy is ${pointBuyMin}`)
+          if (numValue > pointBuyMax) validationErrors.push(`${ability.toUpperCase()} maximum for Point Buy is ${pointBuyMax}`)
+        }
+        
+        const clampedValue = Math.max(
+          state.character.statMethod === 'pointbuy' ? pointBuyMin : ABILITY_MIN,
+          Math.min(state.character.statMethod === 'pointbuy' ? pointBuyMax : ABILITY_MAX, numValue)
+        )
+        
+        if (state.character.statMethod === 'pointbuy') {
+          const testAbilities = { ...state.character.baseAbilities, [ability]: clampedValue }
+          const cost = getPointBuyCost(testAbilities)
+          if (cost > pointBuyTotal) validationErrors.push(`Point Buy cost (${cost}) exceeds maximum (${pointBuyTotal})`)
+        }
+        
+        const updated = {
+          ...state.character,
+          baseAbilities: { ...state.character.baseAbilities, [ability]: clampedValue },
+          abilities: { ...state.character.baseAbilities, [ability]: clampedValue },
+          updatedAt: Date.now(),
+        }
+        
+        return { character: get().calculateDerivedStats(updated), validationErrors }
+      }),
+
+    calculateDerivedStats: (char) => {
+      if (!char) return null
+      
+      // Start with base abilities
+      const baseAbilities = char.baseAbilities || char.abilities || { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }
+      
+      // Apply racial ability score increases
+      let abilities = { ...baseAbilities }
+      if (char.race) {
+        const race = getRaceData(char.race)
+        if (race && race.abilityScoreIncrease) {
+          Object.entries(race.abilityScoreIncrease).forEach(([ability, bonus]) => {
+            if (abilities[ability] !== undefined) {
+              abilities[ability] = baseAbilities[ability] + bonus
+            }
+          })
+        }
+      }
+      
+      // Calculate modifiers from final abilities (with racial bonuses)
+      const modifiers = {}
+      Object.entries(abilities).forEach(([ability, score]) => {
+        modifiers[ability] = getModifier(score)
+      })
+      
+      const profBonus = getProficiencyBonus(char.level || 1)
+      const savingThrows = {}
+      const proficientSaves = char.class ? classSavingThrows[char.class] || [] : []
+      Object.entries(modifiers).forEach(([ability, mod]) => {
+        savingThrows[ability] = proficientSaves.includes(ability) ? mod + profBonus : mod
+      })
+      
+      let hitPoints = char.hitPoints || 0
+      let maxHitPoints = char.maxHitPoints || 0
+      let hpHistory = char.hpHistory || []
+      
+      if (hpHistory.length === 0 && char.class) {
+        const hitDie = classHitDice[char.class] || 8
+        const conMod = modifiers.con || 0
+        const level1HP = hitDie + conMod
+        hitPoints = level1HP
+        maxHitPoints = level1HP
+        hpHistory = [{ level: 1, roll: `Max (${hitDie}) + ${conMod >= 0 ? '+' : ''}${conMod} CON`, gain: level1HP, total: level1HP, timestamp: Date.now() }]
+      }
+      
+      const dexMod = modifiers.dex || 0
+      const ac = calculateAC(char.armorType || 'none', dexMod, char.hasShield || false)
+      const speed = char.race ? (getRaceData(char.race).speed || 30) : 30
+      const initiative = dexMod
+      const spellSaveDC = char.class ? calculateSpellSaveDC(char.class, abilities, profBonus) : 0
+      const attackBonus = char.class ? calculateAttackBonus(char.class, abilities, profBonus) : 0
+      const carryingCapacity = calculateCarryingCapacity(abilities.str || 10)
+      const pushDragLift = carryingCapacity * 2
+      const asiCount = asiLevels.filter(l => l <= (char.level || 1)).length
+      const asiAvailable = asiCount - (char.asiUsed || 0)
+      
+      return { 
+        ...char, 
+        abilities, // Final abilities with racial bonuses
+        baseAbilities, // Base scores without bonuses
+        modifiers, 
+        savingThrows, 
+        proficiencyBonus: profBonus, 
+        hitPoints, 
+        maxHitPoints, 
+        hpHistory, 
+        armorClass: ac, 
+        speed, 
+        initiative, 
+        spellSaveDC, 
+        attackBonus, 
+        carryingCapacity, 
+        pushDragLift, 
+        asiAvailable 
+      }
+    },
+
+    toggleSkillProficiency: (skillKey) =>
+      set((state) => {
+        if (!state.character) return state
+        
+        const currentProficiencies = state.character.skillProficiencies || []
+        const isProficient = currentProficiencies.includes(skillKey)
+        
+        let newProficiencies
+        if (isProficient) {
+          newProficiencies = currentProficiencies.filter(s => s !== skillKey)
+        } else {
+          const classSkills = classSkillProficiencies[state.character.class]
+          const maxSkills = classSkills ? classSkills.count : 0
+          
+          if (currentProficiencies.length < maxSkills) {
+            newProficiencies = [...currentProficiencies, skillKey]
+          } else {
+            return state
+          }
+        }
+        
+        return {
+          character: {
+            ...state.character,
+            skillProficiencies: newProficiencies,
+          }
+        }
+      }),
+
+    getSkillModifier: (skillKey) => {
+      const state = get()
+      if (!state.character) return 0
+      
+      const skill = skills[skillKey]
+      if (!skill) return 0
+      
+      const abilityMod = state.character.modifiers?.[skill.ability] || 0
+      const isProficient = state.character.skillProficiencies?.includes(skillKey)
+      const profBonus = state.character.proficiencyBonus || 2
+      
+      return abilityMod + (isProficient ? profBonus : 0)
+    },
+
+    rollAbilityScores: () =>
+      set((state) => {
+        if (!state.character) return state
+        const scores = generateAbilityScores()
+        const abilities = {}
+        const rollBreakdowns = {}
+        scores.forEach(result => {
+          abilities[result.ability] = result.score
+          rollBreakdowns[result.ability] = result.breakdown
+        })
+        const rollResults = scores.map(r => ({ ability: r.ability, result: r.breakdown, timestamp: Date.now() }))
+        const updated = { 
+          ...state.character, 
+          baseAbilities: { ...abilities },
+          abilities: { ...abilities },
+          statMethod: 'roll', 
+          activeStatTab: 'roll' 
+        }
+        return {
+          character: get().calculateDerivedStats(updated),
+          rollBreakdowns,
+          rollHistory: [...(state.rollHistory || []), ...rollResults],
+        }
+      }),
+
+    rollInitiative: () => {
+      const state = get()
+      if (!state.character) return null
+      const dexMod = state.character.modifiers?.dex || getModifier(state.character.abilities?.dex || 10)
+      const result = rollD20(dexMod)
+      const rollEntry = { type: 'initiative', result: formatRoll(result), total: result.total, timestamp: Date.now() }
+      set((prev) => ({ rollHistory: [...(prev.rollHistory || []), rollEntry] }))
+      return result
+    },
+
+    rollSkillCheck: (skillKey) => {
+      const state = get()
+      if (!state.character) return null
+      
+      const skill = skills[skillKey]
+      if (!skill) return null
+      
+      const abilityMod = state.character.modifiers?.[skill.ability] || 0
+      const profBonus = state.character.proficiencyBonus || 2
+      const isProficient = state.character.skillProficiencies?.includes(skillKey)
+      const totalMod = abilityMod + (isProficient ? profBonus : 0)
+      
+      const result = rollD20(totalMod)
+      const rollEntry = { 
+        type: 'skill-check', 
+        skill: skill.name,
+        ability: skill.ability,
+        result: formatRoll(result), 
+        total: result.total, 
+        proficient: isProficient,
+        timestamp: Date.now() 
+      }
+      set((prev) => ({ rollHistory: [...(prev.rollHistory || []), rollEntry] }))
+      return result
+    },
+
+    rollSavingThrow: (abilityKey) => {
+      const state = get()
+      if (!state.character) return null
+      const abilityMod = state.character.modifiers?.[abilityKey] || getModifier(state.character.abilities?.[abilityKey] || 10)
+      const profBonus = state.character.proficiencyBonus || 2
+      const proficientSaves = state.character.class ? classSavingThrows[state.character.class] || [] : []
+      const proficient = proficientSaves.includes(abilityKey)
+      const result = rollD20(abilityMod + (proficient ? profBonus : 0))
+      const rollEntry = { type: 'save', ability: abilityKey, result: formatRoll(result), total: result.total, proficient, timestamp: Date.now() }
+      set((prev) => ({ rollHistory: [...(prev.rollHistory || []), rollEntry] }))
+      return result
+    },
+
+    rollLevelUpHP: () => {
+      const state = get()
+      if (!state.character) return null
+      const currentLevel = state.character.level || 1
+      const newLevel = currentLevel + 1
+      if (newLevel > 20) return { error: 'Maximum level is 20' }
+      const hitDie = classHitDice[state.character.class] || 8
+      const conMod = state.character.modifiers?.con || getModifier(state.character.abilities?.con || 10)
+      let hpGain = 0, rollResult = ''
+      if (newLevel === 1) {
+        hpGain = hitDie + conMod
+        rollResult = `Max (${hitDie}) + ${conMod >= 0 ? '+' : ''}${conMod} CON`
+      } else {
+        const roll = rollDie(hitDie)
+        hpGain = Math.max(1, roll + conMod)
+        rollResult = `1d${hitDie}=${roll} + ${conMod >= 0 ? '+' : ''}${conMod} CON`
+      }
+      const rollEntry = { type: 'level-up-hp', level: newLevel, hitDie: `1d${hitDie}`, conMod, result: `${hpGain} HP gained (${rollResult})`, timestamp: Date.now() }
+      const hpHistory = state.character.hpHistory || []
+      const newHpHistory = [...hpHistory, { level: newLevel, roll: rollResult, gain: hpGain, total: (state.character.maxHitPoints || 0) + hpGain, timestamp: Date.now() }]
+      set((prev) => ({ rollHistory: [...(prev.rollHistory || []), rollEntry], character: prev.character ? { ...prev.character, level: newLevel, hitPoints: (prev.character.maxHitPoints || 0) + hpGain, maxHitPoints: (prev.character.maxHitPoints || 0) + hpGain, hpHistory: newHpHistory } : null }))
+      return { level: newLevel, gain: hpGain, result: rollResult }
+    },
+
+    validatePointBuy: (abilities) => isValidPointBuy(abilities),
+    getPointBuyCost: (abilities) => getPointBuyCost(abilities),
+    loadCharacter: (id) => set((state) => ({ character: state.characters.find((c) => c.id === id) || null })),
+    deleteCharacter: (id) => set((state) => ({ characters: state.characters.filter((c) => c.id !== id), character: state.character?.id === id ? null : state.character })),
+    addSkillProficiency: (skill) => set((state) => { if (!state.character) return state; if (state.character.skillProficiencies.includes(skill)) return state; const updated = { ...state.character, skillProficiencies: [...state.character.skillProficiencies, skill] }; return { character: get().calculateDerivedStats(updated) } }),
+    setArmor: (armorType, hasShield = false) => set((state) => { if (!state.character) return state; const updated = { ...state.character, armorType, hasShield }; return { character: get().calculateDerivedStats(updated) } }),
+    clearRollHistory: () => set({ rollHistory: [] }),
+    clearValidationErrors: () => set({ validationErrors: [] }),
+  })
+)
+
+
+================================================================================
+FILE: package.json
+LINES: 33
+================================================================================
+{
+  "name": "dnd-builder",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.13.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.14",
+    "globals": "^15.11.0",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "typescript": "~5.6.2",
+    "typescript-eslint": "^8.11.0",
+    "vite": "^5.4.10"
+  }
+}
+
+
+================================================================================
+FILE: vite.config.js
+LINES: 10
+================================================================================
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 5173,
+    open: true
+  }
+})
+
+
+================================================================================
+FILE: tailwind.config.js
+LINES: 75
+================================================================================
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        'dark-purple': {
+          50: '#faf5ff',
+          100: '#f3e8ff',
+          200: '#e9d5ff',
+          300: '#d8b4fe',
+          400: '#c084fc',
+          500: '#a855f7',
+          600: '#9333ea',
+          700: '#7c3aed',
+          800: '#6b21a8',
+          900: '#581c87',
+          950: '#3b0764',
+        },
+        // Friend Group Favorite Colors
+        'teal': {
+          DEFAULT: '#008080',
+          light: '#4db8b8',
+          dark: '#004d4d',
+        },
+        'orange': {
+          DEFAULT: '#ff8c00',
+          light: '#ffb84d',
+          dark: '#cc7000',
+        },
+        'vantablack': '#0a0a0a',
+        'periwinkle': '#ccccff',
+        'purple': {
+          DEFAULT: '#9333ea',
+          light: '#c084fc',
+          dark: '#6b21a8',
+        },
+        'green': {
+          DEFAULT: '#22c55e',
+          light: '#4ade80',
+          dark: '#15803d',
+        },
+        'yellow': {
+          DEFAULT: '#eab308',
+          light: '#fde047',
+          dark: '#a16207',
+        },
+        'gold': {
+          DEFAULT: '#ffd700',
+          light: '#ffed4a',
+          dark: '#b8860b',
+        },
+        'sky-blue': {
+          DEFAULT: '#87ceeb',
+          light: '#b8e4f5',
+          dark: '#5ba3c9',
+        },
+        'galaxy-blue': {
+          DEFAULT: '#4b6cb7',
+          light: '#7a94d4',
+          dark: '#2d4a7c',
+        },
+        'blood-red': {
+          DEFAULT: '#8b0000',
+          light: '#c41e1e',
+          dark: '#5c0000',
+        },
+      },
+    },
+  },
+  plugins: [],
+}
+
+
+================================================================================
+FILE: index.html
+LINES: 13
+================================================================================
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>D&D Character Builder</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	project-dump-2026-03-08-01-45-57.txt
+
+nothing added to commit but untracked files present (use "git add" to track)
+f863750 feat: tab colors based on friends' favorites (Mark:purple, Zefhyr:blood, etc.)
+8ec7af2 feat: each tab button has unique gradient color theme
+d45e08a feat: vantablack background with unique gradient themes for each tab
+92eacaa fix: App.jsx uses dark theme backgrounds instead of white
+e482f3a fix: CharacterTab.jsx uses dark theme classes (.input-field, text-white)

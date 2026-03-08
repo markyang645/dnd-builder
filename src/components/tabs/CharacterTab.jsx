@@ -1,10 +1,7 @@
 ﻿import React from 'react';
 import { useCharacterStore } from '../../state/store';
-
 export default function CharacterTab() {
   const { character, updateCharacter } = useCharacterStore();
-
-  if (!character) return <div className="p-4 text-white">Create a character to begin</div>;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -12,62 +9,67 @@ export default function CharacterTab() {
   };
 
   return (
-    <div className="space-y-4 p-6 bg-tab-purple/20 backdrop-blur-sm rounded-xl m-4">
-      <h2 className="text-2xl font-bold text-white drop-shadow-lg">✨ Character Identity</h2>
+    <div className="space-y-4 p-4">
+      <h2 className="text-xl font-bold text-gray-800">Character Identity</h2>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-purple-200">Character Name</label>
+          <label className="block text-sm font-medium text-gray-700">Character Name</label>
           <input
             type="text"
             name="name"
-            value={character.name || ''}
+            value={character.name}
             onChange={handleChange}
-            className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-purple-200">Background</label>
+          <label className="block text-sm font-medium text-gray-700">Background</label>
           <input
             type="text"
             name="background"
-            value={character.background || ''}
+            value={character.background}
             onChange={handleChange}
-            className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-purple-200">Race</label>
+          <label className="block text-sm font-medium text-gray-700">Race</label>
           <select
             name="race"
-            value={character.race || ''}
+            value={character.race}
             onChange={handleChange}
-            className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
           >
             <option value="">Select Race</option>
+            {/* You can map these from raceData later */}
             <option value="human">Human</option>
             <option value="elf">Elf</option>
             <option value="dwarf">Dwarf</option>
           </select>
         </div>
+
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="block text-sm font-medium text-purple-200">Class</label>
+            <label className="block text-sm font-medium text-gray-700">Class</label>
             <input
               type="text"
               name="class"
-              value={character.class || ''}
+              value={character.class}
               onChange={handleChange}
-              className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-purple-200">Level</label>
+            <label className="block text-sm font-medium text-gray-700">Level</label>
             <input
               type="number"
               name="level"
-              value={character.level || 1}
+              value={character.level}
               onChange={handleChange}
-              className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
             />
           </div>
         </div>
