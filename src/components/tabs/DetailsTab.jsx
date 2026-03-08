@@ -1,79 +1,87 @@
-﻿import React from 'react';
+﻿import React, { useEffect } from 'react';
 import { useCharacterStore } from '../../state/store';
-import { alignments } from '../../data/dndRules';
 
 export default function DetailsTab() {
-  const { character, updateCharacter } = useCharacterStore();
+  const { character, createCharacter, updateCharacter } = useCharacterStore();
+
+  useEffect(() => {
+    if (!character) createCharacter('New Character');
+  }, [character, createCharacter]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (character) updateCharacter(name, value);
+  };
 
   return (
     <div className="p-6 bg-tab-sky/20 backdrop-blur-sm rounded-xl m-4 space-y-4">
       <h2 className="text-2xl font-bold text-white drop-shadow-lg">📜 Character Details</h2>
-      <p className="text-gray-400 text-sm">Personal information, backstory, and roleplay details</p>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-sky-200">Alignment</label>
-          <select value={character?.alignment || ''} onChange={(e) => updateCharacter('alignment', e.target.value)} className="input-field mt-1 border-sky-600/50">
+          <select name="alignment" value={character?.alignment || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Alignment</option>
-            {alignments.map(a => <option key={a} value={a}>{a.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
+            <option value="lawful-good">Lawful Good</option>
+            <option value="neutral-good">Neutral Good</option>
+            <option value="chaotic-good">Chaotic Good</option>
+            <option value="lawful-neutral">Lawful Neutral</option>
+            <option value="neutral">Neutral</option>
+            <option value="chaotic-neutral">Chaotic Neutral</option>
+            <option value="lawful-evil">Lawful Evil</option>
+            <option value="neutral-evil">Neutral Evil</option>
+            <option value="chaotic-evil">Chaotic Evil</option>
           </select>
         </div>
-
         <div>
           <label className="block text-sm font-medium text-sky-200">Age</label>
-          <input type="text" value={character?.age || ''} onChange={(e) => updateCharacter('age', e.target.value)} className="input-field mt-1 border-sky-600/50" placeholder="e.g., 25" />
+          <input type="text" name="age" value={character?.age || ''} onChange={handleChange} className="input-field mt-1" />
         </div>
-
         <div>
           <label className="block text-sm font-medium text-sky-200">Gender</label>
-          <input type="text" value={character?.gender || ''} onChange={(e) => updateCharacter('gender', e.target.value)} className="input-field mt-1 border-sky-600/50" placeholder="e.g., Male, Female, Non-binary" />
+          <input type="text" name="gender" value={character?.gender || ''} onChange={handleChange} className="input-field mt-1" />
         </div>
-
         <div>
           <label className="block text-sm font-medium text-sky-200">Height</label>
-          <input type="text" value={character?.height || ''} onChange={(e) => updateCharacter('height', e.target.value)} className="input-field mt-1 border-sky-600/50" placeholder="e.g., 5'10&quot;" />
+          <input type="text" name="height" value={character?.height || ''} onChange={handleChange} className="input-field mt-1" />
         </div>
-
         <div>
           <label className="block text-sm font-medium text-sky-200">Weight</label>
-          <input type="text" value={character?.weight || ''} onChange={(e) => updateCharacter('weight', e.target.value)} className="input-field mt-1 border-sky-600/50" placeholder="e.g., 180 lbs" />
+          <input type="text" name="weight" value={character?.weight || ''} onChange={handleChange} className="input-field mt-1" />
         </div>
-
         <div>
           <label className="block text-sm font-medium text-sky-200">Eyes</label>
-          <input type="text" value={character?.eyes || ''} onChange={(e) => updateCharacter('eyes', e.target.value)} className="input-field mt-1 border-sky-600/50" placeholder="e.g., Blue, Green" />
+          <input type="text" name="eyes" value={character?.eyes || ''} onChange={handleChange} className="input-field mt-1" />
         </div>
-
         <div>
           <label className="block text-sm font-medium text-sky-200">Hair</label>
-          <input type="text" value={character?.hair || ''} onChange={(e) => updateCharacter('hair', e.target.value)} className="input-field mt-1 border-sky-600/50" placeholder="e.g., Brown, Long" />
+          <input type="text" name="hair" value={character?.hair || ''} onChange={handleChange} className="input-field mt-1" />
         </div>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-sky-200">Backstory</label>
-        <textarea value={character?.backstory || ''} onChange={(e) => updateCharacter('backstory', e.target.value)} rows={6} className="input-field mt-1 border-sky-600/50" placeholder="Write your character's story, origins, motivations..." />
+        <textarea name="backstory" rows={6} value={character?.backstory || ''} onChange={handleChange} className="input-field mt-1" />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-sky-200">Personality Traits</label>
-        <textarea value={character?.personalityTraits || ''} onChange={(e) => updateCharacter('personalityTraits', e.target.value)} rows={3} className="input-field mt-1 border-sky-600/50" placeholder="e.g., Brave, Cunning, Loyal..." />
+        <textarea name="personalityTraits" rows={3} value={character?.personalityTraits || ''} onChange={handleChange} className="input-field mt-1" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-sky-200">Ideals</label>
-          <textarea value={character?.ideals || ''} onChange={(e) => updateCharacter('ideals', e.target.value)} rows={3} className="input-field mt-1 border-sky-600/50" placeholder="What drives your character?" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-sky-200">Bonds</label>
-          <textarea value={character?.bonds || ''} onChange={(e) => updateCharacter('bonds', e.target.value)} rows={3} className="input-field mt-1 border-sky-600/50" placeholder="Who or what matters to your character?" />
-        </div>
+      <div>
+        <label className="block text-sm font-medium text-sky-200">Ideals</label>
+        <textarea name="ideals" rows={3} value={character?.ideals || ''} onChange={handleChange} className="input-field mt-1" />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-sky-200">Bonds</label>
+        <textarea name="bonds" rows={3} value={character?.bonds || ''} onChange={handleChange} className="input-field mt-1" />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-sky-200">Flaws</label>
-        <textarea value={character?.flaws || ''} onChange={(e) => updateCharacter('flaws', e.target.value)} rows={3} className="input-field mt-1 border-sky-600/50" placeholder="What weaknesses does your character have?" />
+        <textarea name="flaws" rows={3} value={character?.flaws || ''} onChange={handleChange} className="input-field mt-1" />
       </div>
     </div>
   );

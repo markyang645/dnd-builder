@@ -1,4 +1,4 @@
-﻿import React from 'react';
+﻿import React, { useEffect } from 'react';
 import { useCharacterStore } from '../../state/store';
 import { getAllRaces, getRaceData, getRaceFeatures } from '../../data/raceData';
 
@@ -12,18 +12,18 @@ export default function CharacterTab() {
   // Get subraces for selected race
   const selectedRace = character?.race || '';
   const subraces = allRaces.filter(r => r.isSubrace && r.parentRace === selectedRace);
-  
-  // Auto-create character if none exists
-  React.useEffect(() => {
+
+  // Auto-create character on mount - THIS IS THE KEY FIX
+  useEffect(() => {
     if (!character) {
       createCharacter('New Character');
     }
-  }, []);
+  }, [character, createCharacter]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (character) {
-      updateCharacter(name, value);
+      updateCharacter(name, value);  // TWO arguments, not one object!
     }
   };
 
@@ -31,12 +31,13 @@ export default function CharacterTab() {
   const features = selectedRace ? getRaceFeatures(selectedRace) : [];
   const raceInfo = selectedRace ? getRaceData(selectedRace) : null;
 
+  // Always render - even if character is null (will auto-create)
   return (
     <div className="space-y-4 p-6 bg-tab-purple/20 backdrop-blur-sm rounded-xl m-4">
       <h2 className="text-2xl font-bold text-white drop-shadow-lg">✨ Character Identity</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Name */}
+        {/* Name - ALWAYS EDITABLE */}
         <div>
           <label className="block text-sm font-medium text-purple-200">Character Name</label>
           <input
