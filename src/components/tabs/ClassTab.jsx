@@ -1,9 +1,9 @@
-import React from 'react';
+﻿import React from 'react';
 // ✅ Correct (named import)
-import { useStore } from '../../state/store';
+import { useCharacterStore } from '../../state/store';
 
 export default function ClassTab() {
-  const { character } = useStore();
+  const { character } = useCharacterStore();
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold text-gray-800 mb-4">Class & Features</h2>

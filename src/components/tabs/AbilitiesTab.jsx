@@ -1,11 +1,11 @@
-import React from 'react';
+﻿import React from 'react';
 // ✅ Correct (named import)
-import { useStore } from '../../state/store';
+import { useCharacterStore } from '../../state/store';
 
 const ABILITIES = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
 export default function AbilitiesTab() {
-  const { character, updateAbility } = useStore();
+  const { character, updateAbility } = useCharacterStore();
 
   return (
     <div className="p-4 space-y-6">

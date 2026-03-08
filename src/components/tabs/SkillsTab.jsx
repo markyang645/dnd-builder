@@ -1,10 +1,10 @@
-import React from 'react';
+﻿import React from 'react';
 // ✅ Correct (named import)
-import { useStore } from '../../state/store';
+import { useCharacterStore } from '../../state/store';
 import { skillsData } from '../../data/skillsData';
 
 export default function SkillsTab() {
-  const { character, toggleSkillProficiency } = useStore();
+  const { character, toggleSkillProficiency } = useCharacterStore();
 
   return (
     <div className="p-4">

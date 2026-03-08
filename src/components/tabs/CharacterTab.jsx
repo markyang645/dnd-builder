@@ -1,7 +1,7 @@
-import React from 'react';
+﻿import React from 'react';
 import { useCharacterStore } from '../../state/store';
 export default function CharacterTab() {
-  const { character, updateCharacter } = useStore();
+  const { character, updateCharacter } = useCharacterStore();
 
   const handleChange = (e) => {
     const { name, value } = e.target;

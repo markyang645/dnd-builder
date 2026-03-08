@@ -1,9 +1,9 @@
-import React from 'react';
+﻿import React from 'react';
 // ✅ Correct (named import)
-import { useStore } from '../../state/store';
+import { useCharacterStore } from '../../state/store';
 
 export default function ExportTab() {
-  const { character } = useStore();
+  const { character } = useCharacterStore();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(JSON.stringify(character, null, 2));
