@@ -5,6 +5,8 @@ import { useCharacterStore } from '../../state/store';
 export default function DetailsTab() {
   const { character, updateCharacter } = useCharacterStore();
 
+  if (!character) return <div className="p-4">Create a character to begin</div>;
+
   return (
     <div className="p-4 space-y-4">
       <h2 className="text-xl font-bold text-gray-800">Character Details</h2>
@@ -14,7 +16,7 @@ export default function DetailsTab() {
         <input
           type="text"
           name="alignment"
-          value={character.alignment || ''}
+          value={character?.alignment || ''}
           onChange={(e) => updateCharacter({ alignment: e.target.value })}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
         />
@@ -25,7 +27,7 @@ export default function DetailsTab() {
         <textarea
           name="backstory"
           rows={6}
-          value={character.backstory || ''}
+          value={character?.backstory || ''}
           onChange={(e) => updateCharacter({ backstory: e.target.value })}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
         />

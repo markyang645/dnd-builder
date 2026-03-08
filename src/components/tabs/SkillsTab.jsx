@@ -5,13 +5,15 @@ import { skills } from '../../data/skillsData';
 export default function SkillsTab() {
   const { character, toggleSkillProficiency } = useCharacterStore();
 
+  if (!character) return <div className="p-4">Create a character to begin</div>;
+
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold text-gray-800 mb-4">Skills</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {skills.map((skill) => {
-          const isProficient = character.skillProficiencies.includes(skill.key);
-          const abilityMod = Math.floor((character.abilities[skill.ability] - 10) / 2);
+          const isProficient = character?.skillProficiencies.includes(skill.key);
+          const abilityMod = Math.floor((character?.abilities[skill.ability] - 10) / 2);
           const total = isProficient ? abilityMod + 2 : abilityMod;
           const sign = total >= 0 ? '+' : '';
 

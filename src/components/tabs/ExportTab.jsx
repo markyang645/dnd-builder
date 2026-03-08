@@ -5,6 +5,8 @@ import { useCharacterStore } from '../../state/store';
 export default function ExportTab() {
   const { character } = useCharacterStore();
 
+  if (!character) return <div className="p-4">Create a character to begin</div>;
+
   const handleCopy = () => {
     navigator.clipboard.writeText(JSON.stringify(character, null, 2));
     alert('Character JSON copied to clipboard!');

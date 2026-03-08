@@ -7,12 +7,14 @@ const ABILITIES = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 export default function AbilitiesTab() {
   const { character, updateAbility } = useCharacterStore();
 
+  if (!character) return <div className="p-4">Create a character to begin</div>;
+
   return (
     <div className="p-4 space-y-6">
       <h2 className="text-xl font-bold text-gray-800">Ability Scores</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {ABILITIES.map((ability) => {
-          const score = character.abilities[ability];
+          const score = character?.abilities[ability];
           const mod = Math.floor((score - 10) / 2);
           const sign = mod >= 0 ? '+' : '';
           
