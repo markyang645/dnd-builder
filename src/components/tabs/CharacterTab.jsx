@@ -35,7 +35,9 @@ export default function CharacterTab() {
           <label className="block text-sm font-medium text-purple-200">Background</label>
           <select name="background" value={character?.background || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Background</option>
-            {backgrounds.map(bg => <option key={bg} value={bg}>{bg.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
+            {backgrounds.map(bg => (
+              <option key={bg} value={bg}>{bg.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
+            ))}
           </select>
         </div>
 
@@ -44,7 +46,9 @@ export default function CharacterTab() {
           <label className="block text-sm font-medium text-purple-200">Species/Race</label>
           <select name="race" value={character?.race || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Race</option>
-            {races.map(r => <option key={r} value={r}>{r.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
+            {races.map(r => (
+              <option key={r} value={r}>{r.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
+            ))}
           </select>
         </div>
 
@@ -54,7 +58,9 @@ export default function CharacterTab() {
             <label className="block text-sm font-medium text-purple-200">Subrace</label>
             <select name="subrace" value={character?.subrace || ''} onChange={handleChange} className="input-field mt-1">
               <option value="">Select Subrace</option>
-              {availableSubraces.map(sr => <option key={sr} value={sr}>{sr.replace(/([A-Z])/g, ' $1').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
+              {availableSubraces.map(sr => (
+                <option key={sr} value={sr}>{sr.replace(/([A-Z])/g, ' $1').replace(/\b\w/g, l => l.toUpperCase())}</option>
+              ))}
             </select>
           </div>
         )}
@@ -64,7 +70,9 @@ export default function CharacterTab() {
           <label className="block text-sm font-medium text-purple-200">Class</label>
           <select name="class" value={character?.class || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Class</option>
-            {classes.map(c => <option key={c} value={c}>{c.replace(/\b\w/g, l => l.toUpperCase())}</option>)}
+            {classes.map(c => (
+              <option key={c} value={c}>{c.replace(/\b\w/g, l => l.toUpperCase())}</option>
+            ))}
           </select>
         </div>
 
@@ -79,7 +87,9 @@ export default function CharacterTab() {
           <label className="block text-sm font-medium text-purple-200">Alignment</label>
           <select name="alignment" value={character?.alignment || ''} onChange={handleChange} className="input-field mt-1">
             <option value="">Select Alignment</option>
-            {alignments.map(a => <option key={a} value={a}>{a.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
+            {alignments.map(a => (
+              <option key={a} value={a}>{a.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
+            ))}
           </select>
         </div>
 

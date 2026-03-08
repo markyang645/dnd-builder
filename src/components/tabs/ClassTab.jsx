@@ -2,7 +2,6 @@
 import { useCharacterStore } from '../../state/store';
 import { classes, classSavingThrows, classHitDice, getProficiencyBonus, getModifier, calculateAC } from '../../data/dndRules';
 
-// Class features by level (from dnd5e_class_levels.csv)
 const classFeatures = {
   barbarian: {
     1: ["Rage (2x/day, +2 damage)", "Unarmored Defense"],
@@ -161,7 +160,6 @@ export default function ClassTab() {
         </div>
       </div>
 
-      {/* Stats Box */}
       <div className="bg-dark-purple-950/50 border border-red-700/50 p-4 rounded-lg grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
         <div>
           <p className="text-gray-400 text-xs">Hit Points (Level 1)</p>
@@ -183,7 +181,6 @@ export default function ClassTab() {
         </div>
       </div>
 
-      {/* Class Features List */}
       {levelFeatures.length > 0 ? (
         <div className="bg-dark-purple-950/50 border border-red-700/50 p-4 rounded-lg">
           <h3 className="text-sm font-bold text-red-300 mb-3">📜 Features by Level</h3>
