@@ -5,19 +5,15 @@ import {
 } from './components/tabs';
 import { useCharacterStore } from './state/store';
 
-// Simple Icon Components (or import from lucide-react)
-const TabButton = ({ active, onClick, children }) => (
-  <button
-    onClick={onClick}
-    className={`px-4 py-2 text-sm font-medium rounded-t-lg transition ${
-      active 
-        ? 'bg-transparent text-indigo-700 border-t border-l border-r border-gray-200' 
-        : 'bg-transparent text-gray-300 hover:bg-dark-purple-900/30'
-    }`}
-  >
-    {children}
-  </button>
-);
+const tabs = [
+  { key: 'character', label: 'CHARACTER', gradient: 'bg-tab-purple', hover: 'hover:bg-purple-600' },
+  { key: 'class', label: 'CLASS', gradient: 'bg-tab-blood', hover: 'hover:bg-red-700' },
+  { key: 'abilities', label: 'ABILITIES', gradient: 'bg-tab-gold', hover: 'hover:bg-yellow-500' },
+  { key: 'skills', label: 'SKILLS', gradient: 'bg-tab-green', hover: 'hover:bg-green-600' },
+  { key: 'details', label: 'DETAILS', gradient: 'bg-tab-sky', hover: 'hover:bg-sky-500' },
+  { key: 'export', label: 'EXPORT', gradient: 'bg-tab-orange', hover: 'hover:bg-orange-600' },
+  { key: 'custom', label: 'CUSTOM', gradient: 'bg-tab-purple', hover: 'hover:bg-purple-600' },
+];
 
 function App() {
   const [activeTab, setActiveTab] = useState('character');
@@ -36,11 +32,13 @@ function App() {
     }
   };
 
+  const activeTabData = tabs.find(t => t.key === activeTab);
+
   return (
     <div className="min-h-screen bg-vantablack flex">
-      {/* Sidebar (Simplified) */}
-      <aside className="w-64 bg-transparent border-r border-gray-200 p-4 hidden md:block">
-        <h1 className="text-xl font-bold text-indigo-600 mb-6">D&D Builder</h1>
+      {/* Sidebar */}
+      <aside className="w-64 bg-dark-purple-900/50 backdrop-blur-sm border-r border-dark-purple-800 p-4 hidden md:block">
+        <h1 className="text-xl font-bold text-purple-400 mb-6">D&D Builder</h1>
         <div className="space-y-2 text-sm text-gray-300">
           <p><strong>Name:</strong> {character?.name || 'Unnamed'}</p>
           <p><strong>Level:</strong> {character?.level || 1}</p>
@@ -51,18 +49,24 @@ function App() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
         {/* Tab Navigation */}
-        <div className="bg-dark-purple-900/30 px-4 pt-4 flex gap-1 overflow-x-auto">
-          <TabButton active={activeTab === 'character'} onClick={() => setActiveTab('character')}>CHARACTER</TabButton>
-          <TabButton active={activeTab === 'class'} onClick={() => setActiveTab('class')}>CLASS</TabButton>
-          <TabButton active={activeTab === 'abilities'} onClick={() => setActiveTab('abilities')}>ABILITIES</TabButton>
-          <TabButton active={activeTab === 'skills'} onClick={() => setActiveTab('skills')}>SKILLS</TabButton>
-          <TabButton active={activeTab === 'details'} onClick={() => setActiveTab('details')}>DETAILS</TabButton>
-          <TabButton active={activeTab === 'export'} onClick={() => setActiveTab('export')}>EXPORT</TabButton>
-          <TabButton active={activeTab === 'custom'} onClick={() => setActiveTab('custom')}>CUSTOM</TabButton>
+        <div className="bg-dark-purple-950/80 backdrop-blur-sm px-4 pt-4 flex gap-2 overflow-x-auto border-b border-dark-purple-800">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-6 py-3 text-sm font-bold rounded-t-lg transition-all duration-300 transform hover:scale-105 ${
+                activeTab === tab.key
+                  ? `${tab.gradient} text-white shadow-lg scale-110 border-t-2 border-l-2 border-r-2 border-white/30`
+                  : `bg-dark-purple-900/50 text-gray-400 ${tab.hover} hover:text-white`
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {/* Tab Content */}
-        <div className="flex-1 bg-transparent m-4 rounded-b-lg shadow overflow-y-auto">
+        <div className="flex-1 overflow-y-auto">
           {renderTab()}
         </div>
       </main>
