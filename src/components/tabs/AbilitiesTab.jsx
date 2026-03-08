@@ -1,5 +1,6 @@
 import React from 'react';
-import useStore from '../../state/store';
+// ✅ Correct (named import)
+import { useStore } from '../../state/store';
 
 const ABILITIES = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
