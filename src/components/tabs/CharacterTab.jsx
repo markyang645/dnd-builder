@@ -7,7 +7,7 @@ export default function CharacterTab() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (character) {
-      updateCharacter({ [name]: value });
+      updateCharacter(name, value);
     } else {
       createCharacter(value || 'New Character');
     }

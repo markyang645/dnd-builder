@@ -15,7 +15,7 @@ export default function DetailsTab() {
           value={character?.alignment || ''}
           onChange={(e) => {
             if (character) {
-              updateCharacter({ alignment: e.target.value });
+              updateCharacter('alignment', e.target.value);
             } else {
               createCharacter('New Character');
             }
@@ -31,7 +31,7 @@ export default function DetailsTab() {
           value={character?.backstory || ''}
           onChange={(e) => {
             if (character) {
-              updateCharacter({ backstory: e.target.value });
+              updateCharacter('backstory', e.target.value);
             } else {
               createCharacter('New Character');
             }
