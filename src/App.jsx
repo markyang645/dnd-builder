@@ -42,9 +42,9 @@ function App() {
       <aside className="w-64 bg-white border-r border-gray-200 p-4 hidden md:block">
         <h1 className="text-xl font-bold text-indigo-600 mb-6">D&D Builder</h1>
         <div className="space-y-2 text-sm text-gray-600">
-          <p><strong>Name:</strong> {character.name || 'Unnamed'}</p>
-          <p><strong>Level:</strong> {character.level}</p>
-          <p><strong>Class:</strong> {character.class}</p>
+          <p><strong>Name:</strong> {character?.name || 'Unnamed'}</p>
+          <p><strong>Level:</strong> {character?.level || 1}</p>
+          <p><strong>Class:</strong> {character?.class || 'None'}</p>
         </div>
       </aside>
 
