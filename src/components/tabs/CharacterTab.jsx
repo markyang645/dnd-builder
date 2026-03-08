@@ -12,39 +12,36 @@ export default function CharacterTab() {
   };
 
   return (
-    <div className="space-y-4 p-4">
-      <h2 className="text-xl font-bold text-white">Character Identity</h2>
-      
+    <div className="space-y-4 p-6 bg-tab-purple/20 backdrop-blur-sm rounded-xl m-4">
+      <h2 className="text-2xl font-bold text-white drop-shadow-lg">✨ Character Identity</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-300">Character Name</label>
+          <label className="block text-sm font-medium text-purple-200">Character Name</label>
           <input
             type="text"
             name="name"
             value={character.name || ''}
             onChange={handleChange}
-            className="input-field mt-1"
+            className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
           />
         </div>
-
         <div>
-          <label className="block text-sm font-medium text-gray-300">Background</label>
+          <label className="block text-sm font-medium text-purple-200">Background</label>
           <input
             type="text"
             name="background"
             value={character.background || ''}
             onChange={handleChange}
-            className="input-field mt-1"
+            className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
           />
         </div>
-
         <div>
-          <label className="block text-sm font-medium text-gray-300">Race</label>
+          <label className="block text-sm font-medium text-purple-200">Race</label>
           <select
             name="race"
             value={character.race || ''}
             onChange={handleChange}
-            className="input-field mt-1"
+            className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
           >
             <option value="">Select Race</option>
             <option value="human">Human</option>
@@ -52,26 +49,25 @@ export default function CharacterTab() {
             <option value="dwarf">Dwarf</option>
           </select>
         </div>
-
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="block text-sm font-medium text-gray-300">Class</label>
+            <label className="block text-sm font-medium text-purple-200">Class</label>
             <input
               type="text"
               name="class"
               value={character.class || ''}
               onChange={handleChange}
-              className="input-field mt-1"
+              className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300">Level</label>
+            <label className="block text-sm font-medium text-purple-200">Level</label>
             <input
               type="number"
               name="level"
               value={character.level || 1}
               onChange={handleChange}
-              className="input-field mt-1"
+              className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
             />
           </div>
         </div>

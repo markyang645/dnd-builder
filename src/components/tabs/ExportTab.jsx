@@ -1,11 +1,10 @@
 ﻿import React from 'react';
-// ✅ Correct (named import)
 import { useCharacterStore } from '../../state/store';
 
 export default function ExportTab() {
   const { character } = useCharacterStore();
 
-  if (!character) return <div className="p-4">Create a character to begin</div>;
+  if (!character) return <div className="p-4 text-white">Create a character to begin</div>;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(JSON.stringify(character, null, 2));
@@ -13,15 +12,15 @@ export default function ExportTab() {
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Export Character</h2>
+    <div className="p-6 bg-tab-orange/20 backdrop-blur-sm rounded-xl m-4">
+      <h2 className="text-2xl font-bold text-white drop-shadow-lg mb-4">💾 Export Character</h2>
       <button
         onClick={handleCopy}
-        className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
+        className="btn-primary mb-4"
       >
         Copy JSON to Clipboard
       </button>
-      <pre className="mt-4 bg-gray-900 text-gray-100 p-4 rounded text-xs overflow-auto max-h-96">
+      <pre className="bg-dark-purple-950/80 border border-orange-600/50 text-gray-100 p-4 rounded-lg text-xs overflow-auto max-h-96">
         {JSON.stringify(character, null, 2)}
       </pre>
     </div>

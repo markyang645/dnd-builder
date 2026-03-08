@@ -37,7 +37,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen bg-vantablack flex">
       {/* Sidebar (Simplified) */}
       <aside className="w-64 bg-transparent border-r border-gray-200 p-4 hidden md:block">
         <h1 className="text-xl font-bold text-indigo-600 mb-6">D&D Builder</h1>
