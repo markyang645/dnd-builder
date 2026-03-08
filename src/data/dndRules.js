@@ -1,11 +1,11 @@
-﻿// D&D 5e Official Rules - Canon Accurate
+﻿// D&D 5e Player's Handbook - Canon Accurate Rules
 export const abilityScores = ['str', 'dex', 'con', 'int', 'wis', 'cha']
 export const abilityLabels = {
   str: 'Strength', dex: 'Dexterity', con: 'Constitution',
   int: 'Intelligence', wis: 'Wisdom', cha: 'Charisma',
 }
 
-// Ability Score Limits
+// Ability Score Limits (PHB p.13)
 export const ABILITY_MIN = 3
 export const ABILITY_MAX = 20
 
@@ -15,13 +15,13 @@ export const pointBuyTotal = 27
 export const pointBuyMin = 8
 export const pointBuyMax = 15
 
-// Standard Array
+// Standard Array (PHB)
 export const standardArray = [15, 14, 13, 12, 10, 8]
 
-// ASI Levels (PHB)
+// ASI Levels (PHB Character Advancement)
 export const asiLevels = [4, 8, 12, 16, 19]
 
-// Proficiency Bonus by Level (PHB Character Advancement)
+// Proficiency Bonus by Level (PHB)
 export const getProficiencyBonus = (level) => {
   if (level >= 17) return 6
   if (level >= 13) return 5
@@ -30,7 +30,7 @@ export const getProficiencyBonus = (level) => {
   return 2
 }
 
-// Racial ASI (PHB Races)
+// Racial Ability Score Increases (PHB Races)
 export const racialASI = {
   human: { str: 1, dex: 1, con: 1, int: 1, wis: 1, cha: 1 },
   elf: { dex: 2 }, dwarf: { con: 2 }, halfling: { dex: 2 },
@@ -54,13 +54,7 @@ export const classHitDice = {
   rogue: 8, sorcerer: 6, warlock: 8, wizard: 6,
 }
 
-// Level 1 HP Formula: Max Hit Die + Con Mod (PHB)
-export const getLevel1HP = (className, conMod) => {
-  const hitDie = classHitDice[className] || 8
-  return hitDie + conMod
-}
-
-// Class Primary Abilities for Spellcasting
+// Class Primary Abilities for Spellcasting (PHB)
 export const classPrimaryAbility = {
   bard: 'cha', cleric: 'wis', druid: 'wis', paladin: 'cha',
   ranger: 'wis', sorcerer: 'cha', warlock: 'cha', wizard: 'int',
@@ -72,50 +66,47 @@ export const racialSpeed = {
   dragonborn: 30, gnome: 25, 'half-elf': 30, 'half-orc': 30, tiefling: 30,
 }
 
-// Helper: Ability Modifier = floor((score - 10) / 2) (PHB)
+// Helper: Ability Modifier = floor((score - 10) / 2) [PHB p.13]
 export const getModifier = (score) => Math.floor((score - 10) / 2)
 
-// Armor Class Calculation (PHB Equipment)
+// Armor Class Calculation (PHB Equipment p.144-145)
 export const calculateAC = (armorType, dexMod, shield = false, baseAC = null) => {
-  // If baseAC is provided (e.g., natural armor), use that instead of 10
   const base = baseAC !== null ? baseAC : 10
-  
   switch (armorType) {
     case 'none': return base + dexMod
-    case 'light': return base + 1 + dexMod  // Leather: 11 + Dex
-    case 'medium': return base + 2 + Math.min(dexMod, 2)  // Hide: 12 + Dex (max +2)
-    case 'heavy': return base + (armorType === 'heavy' ? 6 : 0)  // Chain Mail: 16, no Dex
+    case 'light': return 11 + dexMod  // Leather armor
+    case 'medium': return 12 + Math.min(dexMod, 2)  // Hide armor, max +2 Dex
+    case 'heavy': return 16  // Chain mail, no Dex bonus
     default: return base + dexMod
   }
 }
 
-// Spell Save DC = 8 + spellcasting ability mod + proficiency bonus (PHB)
+// Spell Save DC = 8 + spellcasting ability mod + proficiency bonus [PHB p.205]
 export const calculateSpellSaveDC = (classType, abilities, proficiencyBonus) => {
   const primaryAbility = classPrimaryAbility[classType] || 'wis'
   return 8 + proficiencyBonus + getModifier(abilities[primaryAbility] || 10)
 }
 
-// Spell Attack Bonus = spellcasting ability mod + proficiency bonus (PHB)
+// Spell Attack Bonus = spellcasting ability mod + proficiency bonus [PHB p.205]
 export const calculateAttackBonus = (classType, abilities, proficiencyBonus) => {
   const primaryAbility = classPrimaryAbility[classType] || 'str'
   return proficiencyBonus + getModifier(abilities[primaryAbility] || 10)
 }
 
-// Carrying Capacity = Strength score × 15 lbs (PHB)
+// Carrying Capacity = Strength score × 15 lbs [PHB p.176]
 export const calculateCarryingCapacity = (strengthScore) => strengthScore * 15
 
 // Point Buy Validation
 export const getPointBuyCost = (abilities) => {
   return Object.values(abilities).reduce((total, score) => total + (pointBuyCosts[score] || 0), 0)
 }
-
 export const isValidPointBuy = (abilities) => {
   const cost = getPointBuyCost(abilities)
   const allInRange = Object.values(abilities).every(s => s >= pointBuyMin && s <= pointBuyMax)
   return cost <= pointBuyTotal && allInRange
 }
 
-// Dropdown Options (PHB Canon)
+// ===== FULL PHB DROPDOWN OPTIONS =====
 export const races = ['human', 'elf', 'dwarf', 'halfling', 'dragonborn', 'gnome', 'half-elf', 'half-orc', 'tiefling']
 export const subraces = {
   elf: ['highElf', 'woodElf', 'drow'],
@@ -127,33 +118,34 @@ export const classes = ['barbarian', 'bard', 'cleric', 'druid', 'fighter', 'monk
 export const backgrounds = ['acolyte', 'charlatan', 'criminal', 'entertainer', 'folk-hero', 'guild-artisan', 'hermit', 'noble', 'outlander', 'sage', 'sailor', 'soldier', 'urchin']
 export const alignments = ['lawful-good', 'neutral-good', 'chaotic-good', 'lawful-neutral', 'neutral', 'chaotic-neutral', 'lawful-evil', 'neutral-evil', 'chaotic-evil']
 export const languages = ['common', 'dwarvish', 'elvish', 'giant', 'gnomish', 'goblin', 'halfling', 'orc', 'draconic', 'abyssal', 'celestial', 'infernal', 'primordial', 'sylvan', 'undercommon']
+export const armorTypes = ['none', 'light', 'medium', 'heavy']
 
-// Skills (PHB)
-export const skills = {
-  acrobatics: { name: 'Acrobatics', ability: 'dex', description: 'Balance, tumble, escape bonds' },
-  animalHandling: { name: 'Animal Handling', ability: 'wis', description: 'Calm animals, intuit intentions' },
-  arcana: { name: 'Arcana', ability: 'int', description: 'Recall lore about spells, magic items' },
-  athletics: { name: 'Athletics', ability: 'str', description: 'Climb, jump, swim, grapple' },
-  deception: { name: 'Deception', ability: 'cha', description: 'Lie, con, bluff others' },
-  history: { name: 'History', ability: 'int', description: 'Recall lore about history' },
-  insight: { name: 'Insight', ability: 'wis', description: 'Determine true intentions' },
-  intimidation: { name: 'Intimidation', ability: 'cha', description: 'Influence through threats' },
-  investigation: { name: 'Investigation', ability: 'int', description: 'Deduce clues, solve puzzles' },
-  medicine: { name: 'Medicine', ability: 'wis', description: 'Diagnose wounds, stabilize dying' },
-  nature: { name: 'Nature', ability: 'int', description: 'Recall lore about terrain, plants' },
-  perception: { name: 'Perception', ability: 'wis', description: 'Spot, hear, notice things' },
-  performance: { name: 'Performance', ability: 'cha', description: 'Delight audience with performance' },
-  persuasion: { name: 'Persuasion', ability: 'cha', description: 'Influence through diplomacy' },
-  religion: { name: 'Religion', ability: 'int', description: 'Recall lore about deities, rites' },
-  sleightOfHand: { name: 'Sleight of Hand', ability: 'dex', description: 'Pick pockets, conceal objects' },
-  stealth: { name: 'Stealth', ability: 'dex', description: 'Hide, move silently' },
-  survival: { name: 'Survival', ability: 'wis', description: 'Track, hunt, navigate wilderness' },
-}
+// Skills (PHB p.174-177) - as ARRAY for proper iteration
+export const skills = [
+  { key: 'acrobatics', name: 'Acrobatics', ability: 'dex', description: 'Balance, tumble, escape bonds' },
+  { key: 'animalHandling', name: 'Animal Handling', ability: 'wis', description: 'Calm animals, intuit intentions' },
+  { key: 'arcana', name: 'Arcana', ability: 'int', description: 'Recall lore about spells, magic items' },
+  { key: 'athletics', name: 'Athletics', ability: 'str', description: 'Climb, jump, swim, grapple' },
+  { key: 'deception', name: 'Deception', ability: 'cha', description: 'Lie, con, bluff others' },
+  { key: 'history', name: 'History', ability: 'int', description: 'Recall lore about history' },
+  { key: 'insight', name: 'Insight', ability: 'wis', description: 'Determine true intentions' },
+  { key: 'intimidation', name: 'Intimidation', ability: 'cha', description: 'Influence through threats' },
+  { key: 'investigation', name: 'Investigation', ability: 'int', description: 'Deduce clues, solve puzzles' },
+  { key: 'medicine', name: 'Medicine', ability: 'wis', description: 'Diagnose wounds, stabilize dying' },
+  { key: 'nature', name: 'Nature', ability: 'int', description: 'Recall lore about terrain, plants' },
+  { key: 'perception', name: 'Perception', ability: 'wis', description: 'Spot, hear, notice things' },
+  { key: 'performance', name: 'Performance', ability: 'cha', description: 'Delight audience with performance' },
+  { key: 'persuasion', name: 'Persuasion', ability: 'cha', description: 'Influence through diplomacy' },
+  { key: 'religion', name: 'Religion', ability: 'int', description: 'Recall lore about deities, rites' },
+  { key: 'sleightOfHand', name: 'Sleight of Hand', ability: 'dex', description: 'Pick pockets, conceal objects' },
+  { key: 'stealth', name: 'Stealth', ability: 'dex', description: 'Hide, move silently' },
+  { key: 'survival', name: 'Survival', ability: 'wis', description: 'Track, hunt, navigate wilderness' },
+]
 
 // Class Skill Proficiencies (PHB)
 export const classSkillProficiencies = {
   barbarian: { count: 2, from: ['animalHandling', 'athletics', 'intimidation', 'nature', 'perception', 'survival'] },
-  bard: { count: 3, from: Object.keys(skills) },
+  bard: { count: 3, from: skills.map(s => s.key) },
   cleric: { count: 2, from: ['history', 'insight', 'medicine', 'persuasion', 'religion'] },
   druid: { count: 2, from: ['arcana', 'animalHandling', 'insight', 'medicine', 'nature', 'perception', 'religion', 'survival'] },
   fighter: { count: 2, from: ['acrobatics', 'animalHandling', 'athletics', 'history', 'insight', 'intimidation', 'perception', 'survival'] },

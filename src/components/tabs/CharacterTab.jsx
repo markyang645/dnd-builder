@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import { useCharacterStore } from '../../state/store';
-import { races, subraces, classes, backgrounds, alignments, languages } from '../../data/dndRules';
+import { races, subraces, classes, backgrounds, alignments, languages, armorTypes } from '../../data/dndRules';
 
 export default function CharacterTab() {
   const { character, createCharacter, updateCharacter } = useCharacterStore();
@@ -9,7 +9,7 @@ export default function CharacterTab() {
     const { name, value } = e.target;
     if (character) {
       updateCharacter(name, value);
-    } else if (value) {
+    } else if (value && name === 'name') {
       createCharacter(value);
     }
   };
@@ -24,15 +24,8 @@ export default function CharacterTab() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Name */}
         <div>
-          <label className="block text-sm font-medium text-purple-200">Character Name</label>
-          <input
-            type="text"
-            name="name"
-            value={character?.name || ''}
-            onChange={handleChange}
-            className="input-field mt-1 border-purple-500/50 focus:border-purple-400"
-            placeholder="Enter name..."
-          />
+          <label className="block text-sm font-medium text-purple-200">Character Name *</label>
+          <input type="text" name="name" value={character?.name || ''} onChange={handleChange} className="input-field mt-1 border-purple-500/50 focus:border-purple-400" placeholder="Enter name..." />
         </div>
 
         {/* Background */}

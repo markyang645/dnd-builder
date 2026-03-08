@@ -6,16 +6,15 @@ const ABILITIES = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
 export default function AbilitiesTab() {
   const { character, updateAbility } = useCharacterStore();
-
-  if (!character) return <div className="p-8 text-center text-gray-400">✨ Enter a name in Character tab to begin ✨</div>;
+  const abilities = character?.abilities || { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 };
 
   return (
     <div className="p-6 bg-tab-gold/20 backdrop-blur-sm rounded-xl m-4 space-y-6">
       <h2 className="text-2xl font-bold text-white drop-shadow-lg">💪 Ability Scores</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {ABILITIES.map((ability) => {
-          const score = character.abilities?.[ability] || 10;
-          const mod = getModifier(score); // Official PHB formula: floor((score-10)/2)
+          const score = abilities[ability] || 10;
+          const mod = getModifier(score);
           const sign = mod >= 0 ? '+' : '';
           
           return (

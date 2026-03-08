@@ -1,5 +1,6 @@
 ﻿import React from 'react';
 import { useCharacterStore } from '../../state/store';
+import { alignments } from '../../data/dndRules';
 
 export default function DetailsTab() {
   const { character, updateCharacter, createCharacter } = useCharacterStore();
@@ -10,7 +11,10 @@ export default function DetailsTab() {
       
       <div>
         <label className="block text-sm font-medium text-sky-200">Alignment</label>
-        <input type="text" value={character?.alignment || ''} onChange={(e) => character ? updateCharacter('alignment', e.target.value) : createCharacter('New Character')} className="input-field mt-1 border-sky-600/50" placeholder="e.g., Chaotic Good" />
+        <select value={character?.alignment || ''} onChange={(e) => character ? updateCharacter('alignment', e.target.value) : createCharacter('New Character')} className="input-field mt-1 border-sky-600/50">
+          <option value="">Select Alignment</option>
+          {alignments.map(a => <option key={a} value={a}>{a.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
+        </select>
       </div>
 
       <div>
