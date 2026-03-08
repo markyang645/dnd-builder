@@ -11,8 +11,8 @@ const TabButton = ({ active, onClick, children }) => (
     onClick={onClick}
     className={`px-4 py-2 text-sm font-medium rounded-t-lg transition ${
       active 
-        ? 'bg-white text-indigo-700 border-t border-l border-r border-gray-200' 
-        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+        ? 'bg-transparent text-indigo-700 border-t border-l border-r border-gray-200' 
+        : 'bg-transparent text-gray-300 hover:bg-dark-purple-900/30'
     }`}
   >
     {children}
@@ -37,11 +37,11 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen flex">
       {/* Sidebar (Simplified) */}
-      <aside className="w-64 bg-white border-r border-gray-200 p-4 hidden md:block">
+      <aside className="w-64 bg-transparent border-r border-gray-200 p-4 hidden md:block">
         <h1 className="text-xl font-bold text-indigo-600 mb-6">D&D Builder</h1>
-        <div className="space-y-2 text-sm text-gray-600">
+        <div className="space-y-2 text-sm text-gray-300">
           <p><strong>Name:</strong> {character?.name || 'Unnamed'}</p>
           <p><strong>Level:</strong> {character?.level || 1}</p>
           <p><strong>Class:</strong> {character?.class || 'None'}</p>
@@ -51,7 +51,7 @@ function App() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
         {/* Tab Navigation */}
-        <div className="bg-gray-200 px-4 pt-4 flex gap-1 overflow-x-auto">
+        <div className="bg-dark-purple-900/30 px-4 pt-4 flex gap-1 overflow-x-auto">
           <TabButton active={activeTab === 'character'} onClick={() => setActiveTab('character')}>CHARACTER</TabButton>
           <TabButton active={activeTab === 'class'} onClick={() => setActiveTab('class')}>CLASS</TabButton>
           <TabButton active={activeTab === 'abilities'} onClick={() => setActiveTab('abilities')}>ABILITIES</TabButton>
@@ -62,7 +62,7 @@ function App() {
         </div>
 
         {/* Tab Content */}
-        <div className="flex-1 bg-white m-4 rounded-b-lg shadow overflow-y-auto">
+        <div className="flex-1 bg-transparent m-4 rounded-b-lg shadow overflow-y-auto">
           {renderTab()}
         </div>
       </main>
