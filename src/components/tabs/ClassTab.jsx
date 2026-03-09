@@ -4,6 +4,23 @@ import { classData } from '../../data/classData';
 import { classHitDice, getProficiencyBonus, getModifier, calculateAC, classSavingThrows } from '../../data/dndRules';
 import { subclassData } from '../../data/subclassData';
 
+// Background data (add this to a separate file later if needed)
+const backgroundData = {
+  acolyte: 'Acolyte',
+  charlatan: 'Charlatan',
+  criminal: 'Criminal',
+  entertainer: 'Entertainer',
+  folkHero: 'Folk Hero',
+  guildArtisan: 'Guild Artisan',
+  hermit: 'Hermit',
+  noble: 'Noble',
+  outlaw: 'Outlaw',
+  sage: 'Sage',
+  sailor: 'Sailor',
+  soldier: 'Soldier',
+  urchin: 'Urchin'
+};
+
 export default function ClassTab() {
   const { character, createCharacter, updateCharacter } = useCharacterStore();
 
@@ -20,6 +37,7 @@ export default function ClassTab() {
 
   const className = character.class || '';
   const level = character.level || 1;
+  const background = character.background || '';
   const classInfo = classData[className];
   const levelInfo = classInfo?.levels?.[level] || {};
   
@@ -36,32 +54,71 @@ export default function ClassTab() {
     <div className="p-6 bg-tab-blood/20 backdrop-blur-sm rounded-xl m-4 space-y-4">
       <h2 className="text-2xl font-bold text-white drop-shadow-lg">⚔️ Class & Features</h2>
       
-      {/* Class Selection */}
+      {/* Class, Level, Background Selection */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Class */}
         <div>
           <label className="block text-sm font-medium text-red-300">Class</label>
-          <select name="class" value={className} onChange={handleChange} className="input-field mt-1">
+          <select
+            name="class"
+            value={className}
+            onChange={handleChange}
+            className="input-field mt-1"
+          >
             <option value="">Select Class</option>
             {Object.keys(classData).map(c => (
               <option key={c} value={c}>{classData[c].name}</option>
             ))}
           </select>
         </div>
-        
+
+        {/* Level */}
+        <div>
+          <label className="block text-sm font-medium text-red-300">Level</label>
+          <input
+            type="number"
+            name="level"
+            value={level}
+            onChange={handleChange}
+            min="1"
+            max="20"
+            className="input-field mt-1"
+          />
+        </div>
+
+        {/* Background */}
+        <div>
+          <label className="block text-sm font-medium text-red-300">Background</label>
+          <select
+            name="background"
+            value={background}
+            onChange={handleChange}
+            className="input-field mt-1"
+          >
+            <option value="">Select Background</option>
+            {Object.entries(backgroundData).map(([key, label]) => (
+              <option key={key} value={key}>{label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Subclass (only shows if class has subclasses) */}
         {availableSubclasses.length > 0 && (
           <div>
             <label className="block text-sm font-medium text-red-300">Subclass</label>
-            <select name="subclass" value={character.subclass || ''} onChange={handleChange} className="input-field mt-1">
+            <select
+              name="subclass"
+              value={character.subclass || ''}
+              onChange={handleChange}
+              className="input-field mt-1"
+            >
               <option value="">Select Subclass</option>
-              {availableSubclasses.map(sc => <option key={sc} value={sc}>{sc}</option>)}
+              {availableSubclasses.map(sc => (
+                <option key={sc} value={sc}>{sc}</option>
+              ))}
             </select>
           </div>
         )}
-        
-        <div>
-          <label className="block text-sm font-medium text-red-300">Level</label>
-          <input type="number" name="level" value={level} onChange={handleChange} min="1" max="20" className="input-field mt-1" />
-        </div>
       </div>
 
       {/* Class Description */}
@@ -101,7 +158,7 @@ export default function ClassTab() {
       {/* Level Features */}
       {levelInfo.features && levelInfo.features.length > 0 && (
         <div className="bg-dark-purple-950/50 border border-red-700/50 p-4 rounded-lg">
-          <h3 className="text-sm font-bold text-red-300 mb-3"> Level {level} Features</h3>
+          <h3 className="text-sm font-bold text-red-300 mb-3">⚔️ Level {level} Features</h3>
           <div className="space-y-2">
             {levelInfo.features.map((feature, i) => (
               <div key={i} className="flex items-start gap-2 text-sm text-gray-300">
@@ -110,7 +167,6 @@ export default function ClassTab() {
               </div>
             ))}
           </div>
-          {/* Show special mechanics if present */}
           {levelInfo.rages !== undefined && (
             <p className="text-xs text-gray-400 mt-2">Rages: {levelInfo.rages}, Rage Damage: +{levelInfo.rageDamage}</p>
           )}

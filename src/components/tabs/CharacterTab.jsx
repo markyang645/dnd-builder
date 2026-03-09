@@ -1,14 +1,9 @@
 ﻿import React, { useEffect } from 'react';
 import { useCharacterStore } from '../../state/store';
-// Only import what we KNOW exists
-import { getAllRaces, getRaceData, getRaceFeatures } from '../../data/raceData';
+import { raceData } from '../../data/raceData';
 
 export default function CharacterTab() {
   const { character, createCharacter, updateCharacter } = useCharacterStore();
-  const allRaces = getAllRaces();
-  const baseRaces = allRaces.filter(r => !r.isSubrace);
-  const selectedRace = character?.race || '';
-  const subraces = allRaces.filter(r => r.isSubrace && r.parentRace === selectedRace);
 
   useEffect(() => {
     if (!character) createCharacter('New Character');
@@ -19,86 +14,88 @@ export default function CharacterTab() {
     if (character) updateCharacter(name, value);
   };
 
-  const features = selectedRace ? getRaceFeatures(selectedRace) : [];
-  const raceInfo = selectedRace ? getRaceData(selectedRace) : null;
+  if (!character) return null;
 
-  if (!character) return <div className="p-8 text-center text-gray-400">Loading...</div>;
+  const race = character.race || '';
+  const subrace = character.subrace || '';
+  const raceInfo = raceData[race];
+  const subraceInfo = raceInfo?.subraces?.find(sr => sr.name === subrace);
+
+  // Get features (race + subrace)
+  const features = [];
+  if (raceInfo?.features) {
+    features.push(...raceInfo.features);
+  }
+  if (subraceInfo?.features) {
+    features.push(...subraceInfo.features);
+  }
 
   return (
-    <div className="space-y-4 p-6 bg-tab-purple/20 backdrop-blur-sm rounded-xl m-4">
+    <div className="p-6 bg-gradient-to-br from-purple-900/30 to-indigo-900/30 backdrop-blur-sm rounded-xl m-4 space-y-4">
       <h2 className="text-2xl font-bold text-white drop-shadow-lg">✨ Character Identity</h2>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-purple-200">Character Name</label>
-          <input type="text" name="name" value={character.name || ''} onChange={handleChange} className="input-field mt-1" />
+        {/* Character Name */}
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-purple-300">Character Name</label>
+          <input
+            type="text"
+            name="name"
+            value={character.name || ''}
+            onChange={handleChange}
+            placeholder="Enter character name"
+            className="input-field mt-1"
+          />
         </div>
+
+        {/* Race */}
         <div>
-          <label className="block text-sm font-medium text-purple-200">Background</label>
-          <select name="background" value={character.background || ''} onChange={handleChange} className="input-field mt-1">
-            <option value="">Select</option>
-            <option value="acolyte">Acolyte</option>
-            <option value="charlatan">Charlatan</option>
-            <option value="criminal">Criminal</option>
-            <option value="entertainer">Entertainer</option>
-            <option value="folk-hero">Folk Hero</option>
-            <option value="guild-artisan">Guild Artisan</option>
-            <option value="hermit">Hermit</option>
-            <option value="noble">Noble</option>
-            <option value="outlander">Outlander</option>
-            <option value="sage">Sage</option>
-            <option value="sailor">Sailor</option>
-            <option value="soldier">Soldier</option>
-            <option value="urchin">Urchin</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-purple-200">Race</label>
-          <select name="race" value={selectedRace} onChange={handleChange} className="input-field mt-1">
+          <label className="block text-sm font-medium text-purple-300">Race</label>
+          <select
+            name="race"
+            value={race}
+            onChange={handleChange}
+            className="input-field mt-1"
+          >
             <option value="">Select Race</option>
-            {baseRaces.map(r => <option key={r.key} value={r.key}>{r.name}</option>)}
+            {Object.keys(raceData).map(r => (
+              <option key={r} value={r}>{raceData[r].name}</option>
+            ))}
           </select>
         </div>
-        {subraces.length > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-purple-200">Subrace</label>
-            <select name="subrace" value={character.subrace || ''} onChange={handleChange} className="input-field mt-1">
-              <option value="">Select</option>
-              {subraces.map(s => <option key={s.key} value={s.key}>{s.name}</option>)}
-            </select>
-          </div>
-        )}
+
+        {/* Subrace */}
         <div>
-          <label className="block text-sm font-medium text-purple-200">Class</label>
-          <select name="class" value={character.class || ''} onChange={handleChange} className="input-field mt-1">
-            <option value="">Select Class</option>
-            <option value="artificer">Artificer</option>
-            <option value="barbarian">Barbarian</option>
-            <option value="bard">Bard</option>
-            <option value="cleric">Cleric</option>
-            <option value="druid">Druid</option>
-            <option value="fighter">Fighter</option>
-            <option value="monk">Monk</option>
-            <option value="paladin">Paladin</option>
-            <option value="ranger">Ranger</option>
-            <option value="rogue">Rogue</option>
-            <option value="sorcerer">Sorcerer</option>
-            <option value="warlock">Warlock</option>
-            <option value="wizard">Wizard</option>
+          <label className="block text-sm font-medium text-purple-300">Subrace</label>
+          <select
+            name="subrace"
+            value={subrace}
+            onChange={handleChange}
+            className="input-field mt-1"
+            disabled={!race}
+          >
+            <option value="">Select Subrace</option>
+            {raceInfo?.subraces?.map(sr => (
+              <option key={sr.name} value={sr.name}>{sr.name}</option>
+            ))}
           </select>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-purple-200">Level</label>
-          <input type="number" name="level" value={character.level || 1} onChange={handleChange} min="1" max="20" className="input-field mt-1" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-purple-200">Alignment</label>
-          <select name="alignment" value={character.alignment || ''} onChange={handleChange} className="input-field mt-1">
-            <option value="">Select</option>
+
+        {/* Alignment */}
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-purple-300">Alignment</label>
+          <select
+            name="alignment"
+            value={character.alignment || ''}
+            onChange={handleChange}
+            className="input-field mt-1"
+          >
+            <option value="">Select Alignment</option>
             <option value="lawful-good">Lawful Good</option>
             <option value="neutral-good">Neutral Good</option>
             <option value="chaotic-good">Chaotic Good</option>
             <option value="lawful-neutral">Lawful Neutral</option>
-            <option value="neutral">Neutral</option>
+            <option value="true-neutral">True Neutral</option>
             <option value="chaotic-neutral">Chaotic Neutral</option>
             <option value="lawful-evil">Lawful Evil</option>
             <option value="neutral-evil">Neutral Evil</option>
@@ -106,12 +103,17 @@ export default function CharacterTab() {
           </select>
         </div>
       </div>
+
+      {/* Race Features */}
       {features.length > 0 && (
         <div className="bg-dark-purple-950/50 border border-purple-700/50 p-4 rounded-lg">
-          <h3 className="text-sm font-bold text-purple-300 mb-2">🎯 {raceInfo?.name} Features</h3>
-          <div className="space-y-2 text-xs text-gray-300">
-            {features.map((f, i) => (
-              <div key={i}><strong className="text-purple-300">{f.name}:</strong> {f.description}</div>
+          <h3 className="text-sm font-bold text-purple-300 mb-3">🧬 Racial Features</h3>
+          <div className="space-y-2">
+            {features.map((feature, i) => (
+              <div key={i} className="text-sm text-gray-300">
+                <span className="text-purple-400 font-semibold">{feature.name}:</span>
+                <span className="text-gray-400 ml-2">{feature.description}</span>
+              </div>
             ))}
           </div>
         </div>
