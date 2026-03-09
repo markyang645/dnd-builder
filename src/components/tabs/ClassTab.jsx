@@ -1,6 +1,6 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useCharacterStore } from '../../state/store';
-import { classData, subclassData } from '../../data/classData';
+import { classData } from '../../data/classData';
 import { classHitDice, getProficiencyBonus, getModifier, calculateAC, classSavingThrows } from '../../data/dndRules';
 
 export default function ClassTab() {
@@ -29,11 +29,11 @@ export default function ClassTab() {
   const dexMod = getModifier(character.abilities?.dex || 10);
   const ac = calculateAC(character.armorType || 'none', dexMod, character.hasShield || false);
   const savingThrows = className ? classSavingThrows[className] || [] : [];
-  const availableSubclasses = subclassData[className] || [];
+  // subclassData temporarily disabled
 
   return (
     <div className="p-6 bg-tab-blood/20 backdrop-blur-sm rounded-xl m-4 space-y-4">
-      <h2 className="text-2xl font-bold text-white drop-shadow-lg">⚔️ Class & Features</h2>
+      <h2 className="text-2xl font-bold text-white drop-shadow-lg">?? Class & Features</h2>
       
       {/* Class Selection */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -100,11 +100,11 @@ export default function ClassTab() {
       {/* Level Features */}
       {levelInfo.features && levelInfo.features.length > 0 && (
         <div className="bg-dark-purple-950/50 border border-red-700/50 p-4 rounded-lg">
-          <h3 className="text-sm font-bold text-red-300 mb-3">📜 Level {level} Features</h3>
+          <h3 className="text-sm font-bold text-red-300 mb-3">?? Level {level} Features</h3>
           <div className="space-y-2">
             {levelInfo.features.map((feature, i) => (
               <div key={i} className="flex items-start gap-2 text-sm text-gray-300">
-                <span className="text-red-400">•</span>
+                <span className="text-red-400">�</span>
                 <span>{feature}</span>
               </div>
             ))}
@@ -122,7 +122,7 @@ export default function ClassTab() {
       {/* All Features Timeline */}
       {classInfo && (
         <div className="bg-dark-purple-950/50 border border-red-700/50 p-4 rounded-lg">
-          <h3 className="text-sm font-bold text-red-300 mb-3">📈 Class Progression</h3>
+          <h3 className="text-sm font-bold text-red-300 mb-3">?? Class Progression</h3>
           <div className="space-y-1 max-h-60 overflow-y-auto text-xs">
             {Object.entries(classInfo.levels).map(([lvl, data]) => (
               <div key={lvl} className={`flex gap-2 ${parseInt(lvl) === level ? 'text-red-400 font-bold' : 'text-gray-400'}`}>
