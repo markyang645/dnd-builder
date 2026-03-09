@@ -82,3 +82,17 @@
 body {
   animation: bgCycle 10s infinite;
 }
+
+/* Background cycling animation - forced priority */
+@keyframes bgCycle {
+  0% { background-color: #0a0a0a !important; }
+  25% { background-color: #1a0a1a !important; }
+  50% { background-color: #0a0a1a !important; }
+  75% { background-color: #0a1a1a !important; }
+  100% { background-color: #0a0a0a !important; }
+}
+
+body {
+  animation: bgCycle 10s infinite !important;
+  background-color: #0a0a0a !important;
+}
