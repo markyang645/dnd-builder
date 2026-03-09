@@ -108,7 +108,7 @@ export const FeatureList = ({ features, title, compact = false }) => {
 
 // Race Features (combines base + subrace)
 export const RaceFeatures = ({ raceKey, compact = false }) => {
-  const { getRaceFeatures, getRaceData } = require('../data/raceData')
+  const { getRaceFeatures, getRaceData } = require('../../data/raceData')
   
   if (!raceKey) return null
   
