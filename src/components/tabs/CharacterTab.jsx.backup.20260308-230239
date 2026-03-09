@@ -21,6 +21,7 @@ export default function CharacterTab() {
   const raceInfo = raceData[race];
   const subraceInfo = raceInfo?.subraces?.find(sr => sr.name === subrace);
 
+  // Get features (race + subrace)
   const features = [];
   if (raceInfo?.features) {
     features.push(...raceInfo.features);
@@ -34,6 +35,7 @@ export default function CharacterTab() {
       <h2 className="text-2xl font-bold text-white drop-shadow-lg">✨ Character Identity</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Character Name */}
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-purple-300">Character Name</label>
           <input
@@ -46,6 +48,7 @@ export default function CharacterTab() {
           />
         </div>
 
+        {/* Race */}
         <div>
           <label className="block text-sm font-medium text-purple-300">Race</label>
           <select
@@ -61,6 +64,7 @@ export default function CharacterTab() {
           </select>
         </div>
 
+        {/* Subrace */}
         <div>
           <label className="block text-sm font-medium text-purple-300">Subrace</label>
           <select
@@ -77,6 +81,7 @@ export default function CharacterTab() {
           </select>
         </div>
 
+        {/* Alignment */}
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-purple-300">Alignment</label>
           <select
@@ -99,6 +104,7 @@ export default function CharacterTab() {
         </div>
       </div>
 
+      {/* Race Features */}
       {features.length > 0 && (
         <div className="bg-dark-purple-950/50 border border-purple-700/50 p-4 rounded-lg">
           <h3 className="text-sm font-bold text-purple-300 mb-3">🧬 Racial Features</h3>
