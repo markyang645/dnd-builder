@@ -19,13 +19,17 @@ export default function CharacterTab() {
   const race = character.race || '';
   const subrace = character.subrace || '';
   const raceInfo = raceData[race];
-  const subraceInfo = raceInfo?.subraces?.find(sr => sr.name === subrace);
+  
+  // Safely get subraces (ensure it's an array)
+  const subraces = Array.isArray(raceInfo?.subraces) ? raceInfo.subraces : [];
+  const subraceInfo = subraces.find(sr => sr.name === subrace);
 
+  // Get features (race + subrace)
   const features = [];
-  if (raceInfo?.features) {
+  if (raceInfo?.features && Array.isArray(raceInfo.features)) {
     features.push(...raceInfo.features);
   }
-  if (subraceInfo?.features) {
+  if (subraceInfo?.features && Array.isArray(subraceInfo.features)) {
     features.push(...subraceInfo.features);
   }
 
@@ -68,10 +72,10 @@ export default function CharacterTab() {
             value={subrace}
             onChange={handleChange}
             className="input-field mt-1"
-            disabled={!race}
+            disabled={subraces.length === 0}
           >
             <option value="">Select Subrace</option>
-            {raceInfo?.subraces?.map(sr => (
+            {subraces.map(sr => (
               <option key={sr.name} value={sr.name}>{sr.name}</option>
             ))}
           </select>
