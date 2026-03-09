@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { useCharacterStore } from '../../state/store';
 import { classData } from '../../data/classData';
 import { classHitDice, getProficiencyBonus, getModifier, calculateAC, classSavingThrows } from '../../data/dndRules';
@@ -104,7 +104,7 @@ export default function ClassTab() {
           <div className="space-y-2">
             {levelInfo.features.map((feature, i) => (
               <div key={i} className="flex items-start gap-2 text-sm text-gray-300">
-                <span className="text-red-400">�</span>
+                <span className="text-red-400">•</span>
                 <span>{feature}</span>
               </div>
             ))}
@@ -136,3 +136,4 @@ export default function ClassTab() {
     </div>
   );
 }
+
