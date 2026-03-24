@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+﻿import { create } from 'zustand'
 import { 
   racialASI, classSavingThrows, classHitDice, getProficiencyBonus,
   racialSpeed, getModifier, calculateAC, isValidPointBuy, pointBuyCosts,
@@ -53,12 +53,15 @@ export const useCharacterStore = create(
           age: '', gender: '', height: '', weight: '',
           eyes: '', hair: '', hairStyle: '', skin: '', favoriteColor: '',
           abilities,
-          baseAbilities: { ...abilities }, // Store base scores before racial bonuses
+          baseAbilities: { ...abilities },
           modifiers: { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 },
           savingThrows: { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 },
           skillProficiencies: [],
           proficiencyBonus: 2,
-          hitPoints: 0, maxHitPoints: 0, hpHistory: [],
+          hitPoints: 10,
+          maxHitPoints: 10,
+          tempHitPoints: 0,
+          hpHistory: [],
           armorClass: 10, speed: 30, initiative: 0,
           spellSaveDC: 0, attackBonus: 0,
           carryingCapacity: 150, pushDragLift: 300,
@@ -165,12 +168,44 @@ export const useCharacterStore = create(
       }),
 
     calculateDerivedStats: (char) => {
+// AUTO-APPLY PROFICIENCIES FROM RACE, CLASS, BACKGROUND
+let skillProficiencies = char.skillProficiencies || []
+const appliedProficiencies = new Set(skillProficiencies)
+
+// Apply Race Proficiencies
+if (char.race) {
+const race = getRaceData(char.race)
+if (race && race.skillProficiencies && Array.isArray(race.skillProficiencies)) {
+race.skillProficiencies.forEach(skill => appliedProficiencies.add(skill))
+}
+// Special race features that grant proficiencies
+if (char.race === 'elf') appliedProficiencies.add('perception')
+if (char.race === 'half-orc') appliedProficiencies.add('intimidation')
+if (char.race === 'halfling') { /* Lucky is not a skill */ }
+}
+
+// Apply Class Proficiencies
+if (char.class) {
+const classSkills = classSkillProficiencies[char.class.toLowerCase()]
+if (classSkills && classSkills.from && Array.isArray(classSkills.from)) {
+// Class grants choice of N skills from their list
+// This is handled in UI, but we track what's available
+}
+}
+
+// Apply Background Proficiencies
+if (char.background) {
+const bgSkills = backgroundSkills[char.background]
+if (bgSkills && Array.isArray(bgSkills)) {
+bgSkills.forEach(skill => appliedProficiencies.add(skill))
+}
+}
+
+skillProficiencies = Array.from(appliedProficiencies)
       if (!char) return null
       
-      // Start with base abilities
       const baseAbilities = char.baseAbilities || char.abilities || { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }
       
-      // Apply racial ability score increases
       let abilities = { ...baseAbilities }
       if (char.race) {
         const race = getRaceData(char.race)
@@ -183,7 +218,6 @@ export const useCharacterStore = create(
         }
       }
       
-      // Calculate modifiers from final abilities (with racial bonuses)
       const modifiers = {}
       Object.entries(abilities).forEach(([ability, score]) => {
         modifiers[ability] = getModifier(score)
@@ -196,17 +230,36 @@ export const useCharacterStore = create(
         savingThrows[ability] = proficientSaves.includes(ability) ? mod + profBonus : mod
       })
       
-      let hitPoints = char.hitPoints || 0
-      let maxHitPoints = char.maxHitPoints || 0
+      // FIXED HP CALCULATION
+      let hitPoints = char.hitPoints || 10
+      let maxHitPoints = char.maxHitPoints || 10
       let hpHistory = char.hpHistory || []
       
-      if (hpHistory.length === 0 && char.class) {
+      // Recalculate HP based on level and class
+      if (char.class && char.level >= 1) {
         const hitDie = classHitDice[char.class] || 8
         const conMod = modifiers.con || 0
-        const level1HP = hitDie + conMod
-        hitPoints = level1HP
-        maxHitPoints = level1HP
-        hpHistory = [{ level: 1, roll: `Max (${hitDie}) + ${conMod >= 0 ? '+' : ''}${conMod} CON`, gain: level1HP, total: level1HP, timestamp: Date.now() }]
+        
+        // If no HP history, initialize from scratch
+        if (!hpHistory || hpHistory.length === 0) {
+          const level1HP = hitDie + conMod
+          hitPoints = level1HP
+          maxHitPoints = level1HP
+          hpHistory = [{ 
+            level: 1, 
+            roll: `Max (${hitDie}) + ${conMod >= 0 ? '+' : ''}${conMod} CON`, 
+            gain: level1HP, 
+            total: level1HP, 
+            timestamp: Date.now() 
+          }]
+        } else {
+          // Recalculate max HP from history
+          maxHitPoints = hpHistory.reduce((total, entry) => total + entry.gain, 0)
+          // Keep current HP if valid, otherwise set to max
+          if (hitPoints > maxHitPoints || hitPoints < 0) {
+            hitPoints = maxHitPoints
+          }
+        }
       }
       
       const dexMod = modifiers.dex || 0
@@ -218,72 +271,167 @@ export const useCharacterStore = create(
       const carryingCapacity = calculateCarryingCapacity(abilities.str || 10)
       const pushDragLift = carryingCapacity * 2
       const asiCount = asiLevels.filter(l => l <= (char.level || 1)).length
-      const asiAvailable = asiCount - (char.asiUsed || 0)
       
-      return { 
-        ...char, 
-        abilities, // Final abilities with racial bonuses
-        baseAbilities, // Base scores without bonuses
-        modifiers, 
-        savingThrows, 
-        proficiencyBonus: profBonus, 
-        hitPoints, 
-        maxHitPoints, 
-        hpHistory, 
-        armorClass: ac, 
-        speed, 
-        initiative, 
-        spellSaveDC, 
-        attackBonus, 
-        carryingCapacity, 
-        pushDragLift, 
-        asiAvailable 
+      return {
+        ...char,
+        abilities,
+        modifiers,
+        savingThrows,
+        hitPoints,
+        maxHitPoints,
+        hpHistory,
+        armorClass: ac,
+        speed,
+        initiative,
+        spellSaveDC,
+        attackBonus,
+        carryingCapacity,
+        pushDragLift,
+        proficiencyBonus: profBonus,
+        asiAvailable: asiCount,
       }
     },
 
-    toggleSkillProficiency: (skillKey) =>
+    // NEW: Set HP directly
+    setHitPoints: (hp) =>
       set((state) => {
         if (!state.character) return state
-        
-        const currentProficiencies = state.character.skillProficiencies || []
-        const isProficient = currentProficiencies.includes(skillKey)
-        
-        let newProficiencies
-        if (isProficient) {
-          newProficiencies = currentProficiencies.filter(s => s !== skillKey)
-        } else {
-          const classSkills = classSkillProficiencies[state.character.class]
-          const maxSkills = classSkills ? classSkills.count : 0
-          
-          if (currentProficiencies.length < maxSkills) {
-            newProficiencies = [...currentProficiencies, skillKey]
-          } else {
-            return state
-          }
-        }
-        
+        const newHP = Math.max(0, Math.min(state.character.maxHitPoints, hp))
         return {
           character: {
             ...state.character,
-            skillProficiencies: newProficiencies,
+            hitPoints: newHP,
           }
         }
       }),
 
-    getSkillModifier: (skillKey) => {
+    // NEW: Add temp HP
+    addTempHP: (amount) =>
+      set((state) => {
+        if (!state.character) return state
+        const currentTemp = state.character.tempHitPoints || 0
+        const newTemp = Math.max(currentTemp, amount) // Temp HP don't stack, take higher
+        return {
+          character: {
+            ...state.character,
+            tempHitPoints: newTemp,
+          }
+        }
+      }),
+
+    // NEW: Clear temp HP
+    clearTempHP: () =>
+      set((state) => {
+        if (!state.character) return state
+        return {
+          character: {
+            ...state.character,
+            tempHitPoints: 0,
+          }
+        }
+      }),
+
+    // NEW: Damage character
+    takeDamage: (amount, damageType = '') =>
+      set((state) => {
+        if (!state.character) return state
+        
+        let remainingDamage = amount
+        let tempHP = state.character.tempHitPoints || 0
+        
+        // Temp HP absorbs damage first
+        if (tempHP > 0) {
+          if (tempHP >= remainingDamage) {
+            tempHP -= remainingDamage
+            remainingDamage = 0
+          } else {
+            remainingDamage -= tempHP
+            tempHP = 0
+          }
+        }
+        
+        const newHP = Math.max(0, state.character.hitPoints - remainingDamage)
+        
+        return {
+          character: {
+            ...state.character,
+            hitPoints: newHP,
+            tempHitPoints: tempHP,
+          }
+        }
+      }),
+
+    // NEW: Heal character
+    heal: (amount) =>
+      set((state) => {
+        if (!state.character) return state
+        const newHP = Math.min(state.character.maxHitPoints, state.character.hitPoints + amount)
+        return {
+          character: {
+            ...state.character,
+            hitPoints: newHP,
+          }
+        }
+      }),
+
+    rollLevelUpHP: () => {
       const state = get()
-      if (!state.character) return 0
+      if (!state.character) return null
+      const currentLevel = state.character.level || 1
+      const newLevel = currentLevel + 1
+      if (newLevel > 20) return { error: 'Maximum level is 20' }
+      const hitDie = classHitDice[state.character.class] || 8
+      const conMod = state.character.modifiers?.con || getModifier(state.character.abilities?.con || 10)
+      let hpGain = 0, rollResult = ''
       
-      const skill = skills[skillKey]
-      if (!skill) return 0
+      if (newLevel === 1) {
+        hpGain = hitDie + conMod
+        rollResult = `Max (${hitDie}) + ${conMod >= 0 ? '+' : ''}${conMod} CON`
+      } else {
+        const roll = rollDie(hitDie)
+        hpGain = Math.max(1, roll + conMod)
+        rollResult = `1d${hitDie}=${roll} + ${conMod >= 0 ? '+' : ''}${conMod} CON`
+      }
       
-      const abilityMod = state.character.modifiers?.[skill.ability] || 0
-      const isProficient = state.character.skillProficiencies?.includes(skillKey)
-      const profBonus = state.character.proficiencyBonus || 2
+      const hpHistory = state.character.hpHistory || []
+      const newHpHistory = [...hpHistory, { 
+        level: newLevel, 
+        roll: rollResult, 
+        gain: hpGain, 
+        total: (state.character.maxHitPoints || 0) + hpGain, 
+        timestamp: Date.now() 
+      }]
       
-      return abilityMod + (isProficient ? profBonus : 0)
+      set((prev) => ({ 
+        rollHistory: [...(prev.rollHistory || []), { 
+          type: 'level-up-hp', 
+          level: newLevel, 
+          hitDie: `1d${hitDie}`, 
+          conMod, 
+          result: `${hpGain} HP gained (${rollResult})`, 
+          timestamp: Date.now() 
+        }], 
+        character: prev.character ? { 
+          ...prev.character, 
+          level: newLevel, 
+          hitPoints: (prev.character.maxHitPoints || 0) + hpGain, 
+          maxHitPoints: (prev.character.maxHitPoints || 0) + hpGain, 
+          hpHistory: newHpHistory 
+        } : null 
+      }))
+      
+      return { level: newLevel, gain: hpGain, result: rollResult }
     },
 
+    validatePointBuy: (abilities) => isValidPointBuy(abilities),
+    getPointBuyCost: (abilities) => getPointBuyCost(abilities),
+    loadCharacter: (id) => set((state) => ({ character: state.characters.find((c) => c.id === id) || null })),
+    deleteCharacter: (id) => set((state) => ({ characters: state.characters.filter((c) => c.id !== id), character: state.character?.id === id ? null : state.character })),
+    addSkillProficiency: (skill) => set((state) => { if (!state.character) return state; if (state.character.skillProficiencies.includes(skill)) return state; const updated = { ...state.character, skillProficiencies: [...state.character.skillProficiencies, skill] }; return { character: get().calculateDerivedStats(updated) } }),
+    setArmor: (armorType, hasShield = false) => set((state) => { if (!state.character) return state; const updated = { ...state.character, armorType, hasShield }; return { character: get().calculateDerivedStats(updated) } }),
+    clearRollHistory: () => set({ rollHistory: [] }),
+    clearValidationErrors: () => set({ validationErrors: [] }),
+  
     rollAbilityScores: () =>
       set((state) => {
         if (!state.character) return state
@@ -307,88 +455,7 @@ export const useCharacterStore = create(
           rollBreakdowns,
           rollHistory: [...(state.rollHistory || []), ...rollResults],
         }
-      }),
-
-    rollInitiative: () => {
-      const state = get()
-      if (!state.character) return null
-      const dexMod = state.character.modifiers?.dex || getModifier(state.character.abilities?.dex || 10)
-      const result = rollD20(dexMod)
-      const rollEntry = { type: 'initiative', result: formatRoll(result), total: result.total, timestamp: Date.now() }
-      set((prev) => ({ rollHistory: [...(prev.rollHistory || []), rollEntry] }))
-      return result
-    },
-
-    rollSkillCheck: (skillKey) => {
-      const state = get()
-      if (!state.character) return null
-      
-      const skill = skills[skillKey]
-      if (!skill) return null
-      
-      const abilityMod = state.character.modifiers?.[skill.ability] || 0
-      const profBonus = state.character.proficiencyBonus || 2
-      const isProficient = state.character.skillProficiencies?.includes(skillKey)
-      const totalMod = abilityMod + (isProficient ? profBonus : 0)
-      
-      const result = rollD20(totalMod)
-      const rollEntry = { 
-        type: 'skill-check', 
-        skill: skill.name,
-        ability: skill.ability,
-        result: formatRoll(result), 
-        total: result.total, 
-        proficient: isProficient,
-        timestamp: Date.now() 
-      }
-      set((prev) => ({ rollHistory: [...(prev.rollHistory || []), rollEntry] }))
-      return result
-    },
-
-    rollSavingThrow: (abilityKey) => {
-      const state = get()
-      if (!state.character) return null
-      const abilityMod = state.character.modifiers?.[abilityKey] || getModifier(state.character.abilities?.[abilityKey] || 10)
-      const profBonus = state.character.proficiencyBonus || 2
-      const proficientSaves = state.character.class ? classSavingThrows[state.character.class] || [] : []
-      const proficient = proficientSaves.includes(abilityKey)
-      const result = rollD20(abilityMod + (proficient ? profBonus : 0))
-      const rollEntry = { type: 'save', ability: abilityKey, result: formatRoll(result), total: result.total, proficient, timestamp: Date.now() }
-      set((prev) => ({ rollHistory: [...(prev.rollHistory || []), rollEntry] }))
-      return result
-    },
-
-    rollLevelUpHP: () => {
-      const state = get()
-      if (!state.character) return null
-      const currentLevel = state.character.level || 1
-      const newLevel = currentLevel + 1
-      if (newLevel > 20) return { error: 'Maximum level is 20' }
-      const hitDie = classHitDice[state.character.class] || 8
-      const conMod = state.character.modifiers?.con || getModifier(state.character.abilities?.con || 10)
-      let hpGain = 0, rollResult = ''
-      if (newLevel === 1) {
-        hpGain = hitDie + conMod
-        rollResult = `Max (${hitDie}) + ${conMod >= 0 ? '+' : ''}${conMod} CON`
-      } else {
-        const roll = rollDie(hitDie)
-        hpGain = Math.max(1, roll + conMod)
-        rollResult = `1d${hitDie}=${roll} + ${conMod >= 0 ? '+' : ''}${conMod} CON`
-      }
-      const rollEntry = { type: 'level-up-hp', level: newLevel, hitDie: `1d${hitDie}`, conMod, result: `${hpGain} HP gained (${rollResult})`, timestamp: Date.now() }
-      const hpHistory = state.character.hpHistory || []
-      const newHpHistory = [...hpHistory, { level: newLevel, roll: rollResult, gain: hpGain, total: (state.character.maxHitPoints || 0) + hpGain, timestamp: Date.now() }]
-      set((prev) => ({ rollHistory: [...(prev.rollHistory || []), rollEntry], character: prev.character ? { ...prev.character, level: newLevel, hitPoints: (prev.character.maxHitPoints || 0) + hpGain, maxHitPoints: (prev.character.maxHitPoints || 0) + hpGain, hpHistory: newHpHistory } : null }))
-      return { level: newLevel, gain: hpGain, result: rollResult }
-    },
-
-    validatePointBuy: (abilities) => isValidPointBuy(abilities),
-    getPointBuyCost: (abilities) => getPointBuyCost(abilities),
-    loadCharacter: (id) => set((state) => ({ character: state.characters.find((c) => c.id === id) || null })),
-    deleteCharacter: (id) => set((state) => ({ characters: state.characters.filter((c) => c.id !== id), character: state.character?.id === id ? null : state.character })),
-    addSkillProficiency: (skill) => set((state) => { if (!state.character) return state; if (state.character.skillProficiencies.includes(skill)) return state; const updated = { ...state.character, skillProficiencies: [...state.character.skillProficiencies, skill] }; return { character: get().calculateDerivedStats(updated) } }),
-    setArmor: (armorType, hasShield = false) => set((state) => { if (!state.character) return state; const updated = { ...state.character, armorType, hasShield }; return { character: get().calculateDerivedStats(updated) } }),
-    clearRollHistory: () => set({ rollHistory: [] }),
-    clearValidationErrors: () => set({ validationErrors: [] }),
-  })
+      }),})
 )
+
+

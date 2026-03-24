@@ -1,2 +1,16 @@
-﻿export const subclassData = { barbarian: ['Path of the Berserker','Path of the Totem Warrior'], fighter: ['Champion','Battle Master','Eldritch Knight'] };
-export default subclassData;
+﻿export const subclassData = {
+  'Rogue': ["Arcane Trickster", "Assassin", "Inquisitive", "Mastermind", "Phantom", "Scout", "Soulknife", "Swashbuckler", "Thief"],
+  'Bard': ["College of Creation", "College of Eloquence", "College of Glamour", "College of Lore", "College of Spirits", "College of Swords", "College of Valor", "College of Whispers"],
+  'Artificer': ["Alchemist", "Armorer", "Artillerist", "Battle Smith"],
+  'Barbarian': ["Path of the Ancestral Guardian", "Path of the Battlerager", "Path of the Beast", "Path of the Berserker", "Path of the Giant", "Path of the Storm Herald", "Path of the Totem Warrior", "Path of the Wild Magic", "Path of the Zealot"],
+  'Paladin': ["Oath of Conquest", "Oath of Devotion", "Oath of Glory", "Oath of Redemption", "Oath of the Ancients", "Oath of the Crown", "Oath of the Watchers", "Oath of Vengeance", "Oathbreaker"],
+  'Ranger': ["Beast Master", "Drakewarden", "Fey Wanderer", "Gloom Stalker", "Horizon Walker", "Hunter", "Monster Slayer", "Swarmkeeper"],
+  'Sorcerer': ["Aberrant Mind", "Clockwork Soul", "Divine Soul", "Draconic Bloodline", "Lunar Sorcery", "Shadow Magic", "Storm Sorcery", "Wild Magic"],
+  'Fighter': ["Arcane Archer", "Battle Master", "Cavalier", "Champion", "Echo Knight", "Eldritch Knight", "Psi Warrior", "Rune Knight", "Samurai"],
+  'Cleric': ["Arcana Domain", "Death Domain", "Forge Domain", "Grave Domain", "Knowledge Domain", "Life Domain", "Light Domain", "Nature Domain", "Order Domain", "Peace Domain", "Tempest Domain", "Trickery Domain", "Twilight Domain", "War Domain", "Ambition Domain", "Solidarity Domain", "Strength Domain", "Zeal Domain"],
+  'Wizard': ["Bladesinging", "Chronurgy Magic", "Graviturgy Magic", "Order of Scribes", "School of Abjuration", "School of Conjuration", "School of Divination", "School of Enchantment", "School of Evocation", "School of Illusion", "School of Necromancy", "School of Transmutation", "War Magic"],
+  'Monk': ["Way of Mercy", "Way of Shadow", "Way of the Astral Self", "Way of the Drunken Master", "Way of the Four Elements", "Way of the Kensei", "Way of the Long Death", "Way of the Open Hand", "Way of the Sun Soul", "Way of the Ascendant Dragon"],
+  'Warlock': ["The Archfey", "The Celestial", "The Fathomless", "The Fiend", "The Genie", "The Great Old One", "The Hexblade", "The Undead", "The Undying"],
+  'Druid': ["Circle of Dreams", "Circle of Land", "Circle of the Moon", "Circle of the Shepherd", "Circle of the Spores", "Circle of the Stars", "Circle of Wildfire"],
+  bloodhunter: ["Ghostslayer", "Lycan", "Mutant", "Profane Soul"],
+};

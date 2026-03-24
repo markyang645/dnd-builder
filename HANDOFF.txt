@@ -1,0 +1,211 @@
+﻿=============================================================================
+D&D 5E CHARACTER BUILDER - PROJECT HANDOFF DOCUMENT
+=============================================================================
+Generated: 2026-03-23 19:18:46
+Project Path: C:\Users\marky\Dnd-Helper
+Live Site: https://dnd-helper-inky.vercel.app
+GitHub: https://github.com/markyang645/dnd-builder
+
+=============================================================================
+TECH STACK
+=============================================================================
+- Framework: React 18.3.1 + Vite 5.4.10
+- State Management: Zustand 5.0.0
+- Styling: Tailwind CSS 3.4.14
+- PDF Generation: pdf-lib 1.17.1
+- Deployment: Vercel (CLI direct push)
+
+=============================================================================
+DEPLOYMENT INSTRUCTIONS (CRITICAL)
+=============================================================================
+⚠️  DO NOT USE GITHUB PUSH - Webhook issues cause failures
+✅  Use Vercel CLI for every code change:
+
+    cd C:\Users\marky\Dnd-Helper
+    vercel --prod --yes
+
+Local Development:
+    npm run dev       # Start local server (port 5173)
+    npm run build     # Production build
+    npm run preview   # Preview build
+
+=============================================================================
+PROJECT STRUCTURE
+=============================================================================
+src/
+├── App.jsx                    # Main app + tab routing (7 tabs)
+├── main.jsx                   # Entry point
+├── index.css                  # Tailwind + custom styles + animations
+├── components/tabs/
+│   ├── CharacterTab.jsx       # Race/identity/subrace selection
+│   ├── ClassTab.jsx           # Class/level/subclass/background
+│   ├── StatsTab.jsx           # Abilities (Point Buy/Standard/Roll) + Skills
+│   ├── DetailsTab.jsx         # Appearance/backstory/personality
+│   ├── CharacterSheetTab.jsx  # PDF-style reference sheet
+│   ├── ExportTab.jsx          # JSON/PDF export + import
+│   ├── CustomTab.jsx          # Homebrew space
+│   └── index.js               # Tab exports
+├── data/
+│   ├── raceData.js            # 33+ races with subraces + features
+│   ├── classData.js           # 13 classes x 20 levels + features
+│   ├── subclassData.js        # 80+ subclasses
+│   ├── skillsData.js          # 18 skills + class/background proficiencies
+│   └── dndRules.js            # Canon rules/helpers (PHB accurate)
+├── lib/
+│   ├── dice.js                # Rolling utilities (d20, 4d6 drop lowest, etc)
+│   └── pdfFiller.js           # PDF generation (field mapping needs verification)
+└── state/
+    └── store.js               # Zustand character store (ALL calculations)
+
+=============================================================================
+COMPLETED FEATURES
+=============================================================================
+✅ Character Creation (Name, race, subrace, alignment, background)
+✅ Class Selection (13 classes, 20 levels, 80+ subclasses)
+✅ Ability Scores (Point Buy 27pts / Standard Array / Roll 4d6 drop lowest)
+✅ Skill Proficiencies (Toggle checkboxes, auto-calculate totals)
+✅ Proficiency Bonus (Auto-calculated: +2 to +6 by level)
+✅ HP Calculation (Level 1 = HD + CON, Level 2+ = roll/avg + CON)
+✅ Armor Class (None/Light/Medium/Heavy + shield rules)
+✅ Saving Throws (Class-based proficiency)
+✅ Race/Class/Subclass Data (Fully populated)
+✅ Dice Rolling (d20, 4d6 drop lowest, damage, initiative, skill checks)
+✅ Export JSON (Downloads character data)
+✅ Export PDF (pdf-lib integration with WotC fillable PDF)
+✅ Dark Theme UI (Tailwind with custom gradients + animations)
+✅ Background Cycling Animation (10s color cycle)
+✅ Roll History Tracking (All rolls logged with timestamps)
+✅ HP History Tracking (Level-up HP gains logged)
+✅ Temp HP Support (Add/clear/temp damage absorption)
+✅ Damage/Heal Functions (takeDamage, heal actions in store)
+
+=============================================================================
+CANON D&D 5E CALCULATIONS (PHB Accurate)
+=============================================================================
+Ability Modifier:     Math.floor((score - 10) / 2)
+Proficiency Bonus:    Level 1-4: +2 | 5-8: +3 | 9-12: +4 | 13-16: +5 | 17-20: +6
+HP Level 1:           Hit Die + CON modifier (maximum)
+HP Level 2+:          Math.max(1, Roll(Hit Die) + CON modifier)
+Armor Class (None):   10 + DEX
+Armor Class (Light):  11 + DEX
+Armor Class (Medium): 12 + min(DEX, 2)
+Armor Class (Heavy):  16 (no DEX)
+Initiative:           DEX modifier
+Spell Save DC:        8 + proficiencyBonus + spellcastingAbility_modifier
+Skill Total:          ability_modifier + (proficient ? proficiencyBonus : 0)
+Passive Perception:   10 + WIS_modifier + (proficient ? proficiencyBonus : 0)
+Carrying Capacity:    STR score × 15 lbs
+Point Buy Total:      27 points (scores 8-15)
+Point Buy Costs:      8=0, 9=1, 10=2, 11=3, 12=4, 13=5, 14=7, 15=9
+ASI Levels:           4, 8, 12, 16, 19
+
+=============================================================================
+KNOWN ISSUES / TODO
+=============================================================================
+🔴 PDF Export: pdfFiller.js field mapping needs verification against WotC PDF
+   - File: src/lib/pdfFiller.js
+   - PDF Source: D:\5E_CharacterSheet_Fillable (1).pdf
+   - Action: Test each field, update FIELD_MAPPING object
+
+🟡 Character Sheet Tab: UI scaling needs responsive tweaks
+   - File: src/components/tabs/CharacterSheetTab.jsx
+   - Issue: May overflow on small screens
+
+🟡 Class Features Box: Display is small, needs expansion
+   - File: src/components/tabs/ClassTab.jsx
+   - Issue: Feature list can be truncated
+
+🟡 Details Tab: Inputs should be sliders/dropdowns
+   - File: src/components/tabs/DetailsTab.jsx
+   - Fields: Age, Gender, Height, Weight, Eyes, Hair
+
+🟢 Cleanup: Remove .backup.* files from tabs/ and data/
+   - Command: Remove-Item -Path "src\**\*.backup.*" -Recurse -Force
+
+=============================================================================
+KEY STORE ACTIONS (src/state/store.js)
+=============================================================================
+createCharacter(name, statMethod)     # Create new character
+updateCharacter(key, value)           # Update any character field
+updateAbility(ability, value)         # Update ability score with validation
+calculateDerivedStats(char)           # Recalculate all derived values
+toggleSkillProficiency(skillKey)      # Toggle skill proficiency
+rollAbilityScores()                   # Roll 4d6 drop lowest for all stats
+setActiveStatTab(tab)                 # Switch Point Buy/Standard/Roll
+rollInitiative()                      # Roll d20 + DEX
+rollSkillCheck(skillKey)              # Roll skill check
+rollSavingThrow(abilityKey)           # Roll saving throw
+rollLevelUpHP()                       # Level up and roll HP
+setHP(hp)                             # Set current HP
+addTempHP(amount)                     # Add temp HP
+clearTempHP()                         # Clear temp HP
+takeDamage(amount, type)              # Apply damage (temp HP first)
+heal(amount)                          # Heal character
+loadCharacter(id)                     # Load from characters array
+deleteCharacter(id)                   # Delete character
+exportJSON(character)                 # Export to JSON
+importJSON(file)                      # Import from JSON
+
+=============================================================================
+RACE DATA SUMMARY (src/data/raceData.js)
+=============================================================================
+Core Races: Human, Elf, Dwarf, Halfling, Dragonborn, Tiefling, Gnome, 
+            Half-Elf, Half-Orc
+Additional: Aarakocra, Aasimar, Bugbear, Firbolg, Goblin, Goliath, 
+            Hobgoblin, Kenku, Kobold, Lizardfolk, Tabaxi, Tortle, Triton, 
+            Warforged, Orc, Minotaur, Centaur, Changeling, Kalashtar, 
+            Shifter, Locathah, Grung, Yuan-Ti, Vedalken, Loxodon, Leonin, 
+            Satyr, Fairy, Harengon, Dhampir, Hexblood, Reborn
+Total: 33+ races with 80+ subrace variants
+
+=============================================================================
+CLASS DATA SUMMARY (src/data/classData.js)
+=============================================================================
+Classes: Barbarian, Bard, Cleric, Druid, Fighter, Monk, Paladin, Ranger, 
+         Rogue, Sorcerer, Warlock, Wizard, Artificer, Blood Hunter (homebrew)
+Levels: 1-20 with full feature progression
+Subclasses: 80+ options in subclassData.js
+
+=============================================================================
+CONTACT / CONTEXT
+=============================================================================
+User Location: C:\Users\marky\Dnd-Helper
+PDF Source: D:\5E_CharacterSheet_Fillable (1).pdf
+Development Environment: VSCode + PowerShell
+Browser: Chrome/Edge (F12 for console debugging)
+Persistence: None intentional (reload = reset, export = save)
+State: In-memory Zustand store (no database)
+
+=============================================================================
+DEBUGGING TIPS
+=============================================================================
+1. Run 'npm run dev' for readable error messages (not production build)
+2. Check browser console (F12) for JavaScript errors
+3. Check Zustand store in React DevTools Extension
+4. Verify PDF field names match exactly (case-sensitive)
+5. Clear browser cache if styles don't update
+
+=============================================================================
+QUICK FIX COMMANDS
+=============================================================================
+# Install dependencies
+npm install
+
+# Start dev server
+npm run dev
+
+# Build for production
+npm run build
+
+# Deploy to Vercel
+vercel --prod --yes
+
+# Clean backup files
+Remove-Item -Path "src\**\*.backup.*" -Recurse -Force
+
+# Check for errors
+npm run lint
+
+=============================================================================
+END OF HANDOFF DOCUMENT
+=============================================================================

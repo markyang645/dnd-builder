@@ -37,23 +37,34 @@ export default function ClassTab() {
   const className = character.class || '';
   const level = character.level || 1;
   const background = character.background || '';
-  const classInfo = classData[className];
-  const levelInfo = classInfo?.levels?.[level] || {};
   
-  const hitDie = classInfo?.hitDie || 8;
+  // ULTRA-SAFE: Ensure classInfo is always an object
+  const classInfo = classData[className] || {};
+  const levelInfo = (classInfo.levels && classInfo.levels[level]) || {};
+  
+  const hitDie = classInfo.hitDie || 8;
   const conMod = getModifier(character.abilities?.con || 10);
   const level1HP = hitDie + conMod;
   const profBonus = getProficiencyBonus(level);
   const dexMod = getModifier(character.abilities?.dex || 10);
   const ac = calculateAC(character.armorType || 'none', dexMod, character.hasShield || false);
-  const savingThrows = className ? classSavingThrows[className] || [] : [];
-  const availableSubclasses = subclassData[className] || [];
+  
+  // ULTRA-SAFE: Ensure savingThrows is always an array
+  const savingThrows = (classInfo.savingThrows && Array.isArray(classInfo.savingThrows)) 
+    ? classInfo.savingThrows 
+    : [];
+  
+  // ULTRA-SAFE: Ensure availableSubclasses is always an array
+  const availableSubclasses = (subclassData[className] && Array.isArray(subclassData[className])) 
+    ? subclassData[className] 
+    : [];
 
   return (
     <div className="p-6 bg-tab-blood/20 backdrop-blur-sm rounded-xl m-4 space-y-4">
       <h2 className="text-2xl font-bold text-white drop-shadow-lg">⚔️ Class & Features</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Class */}
         <div>
           <label className="block text-sm font-medium text-red-300">Class</label>
           <select
@@ -63,12 +74,17 @@ export default function ClassTab() {
             className="input-field mt-1"
           >
             <option value="">Select Class</option>
-            {Object.keys(classData).map(c => (
-              <option key={c} value={c}>{classData[c].name}</option>
-            ))}
+            {Object.keys(classData || {}).map(c => {
+              const entry = classData[c];
+              if (!entry || !entry.name) return null;
+              return (
+                <option key={c} value={c}>{entry.name}</option>
+              );
+            })}
           </select>
         </div>
 
+        {/* Level */}
         <div>
           <label className="block text-sm font-medium text-red-300">Level</label>
           <input
@@ -82,6 +98,7 @@ export default function ClassTab() {
           />
         </div>
 
+        {/* Background */}
         <div>
           <label className="block text-sm font-medium text-red-300">Background</label>
           <select
@@ -91,13 +108,14 @@ export default function ClassTab() {
             className="input-field mt-1"
           >
             <option value="">Select Background</option>
-            {Object.entries(backgroundData).map(([key, label]) => (
+            {Object.entries(backgroundData || {}).map(([key, label]) => (
               <option key={key} value={key}>{label}</option>
             ))}
           </select>
         </div>
 
-        {availableSubclasses.length > 0 && (
+        {/* Subclass */}
+        {availableSubclasses && availableSubclasses.length > 0 && (
           <div>
             <label className="block text-sm font-medium text-red-300">Subclass</label>
             <select
@@ -107,26 +125,31 @@ export default function ClassTab() {
               className="input-field mt-1"
             >
               <option value="">Select Subclass</option>
-              {availableSubclasses.map(sc => (
-                <option key={sc} value={sc}>{sc}</option>
-              ))}
+              {availableSubclasses.map(sc => {
+                if (!sc) return null;
+                return (
+                  <option key={sc} value={sc}>{sc}</option>
+                );
+              })}
             </select>
           </div>
         )}
       </div>
 
-      {classInfo && (
+      {/* Class Description */}
+      {classInfo && classInfo.description && (
         <div className="bg-dark-purple-950/50 border border-red-700/50 p-4 rounded-lg">
-          <p className="text-gray-300 text-sm">{classInfo.description}</p>
+          <p className="text-gray-300 text-sm whitespace-pre-line">{classInfo.description}</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-gray-400 mt-2">
-            <div><span className="text-red-400">Hit Die:</span> d{classInfo.hitDie}</div>
-            <div><span className="text-red-400">Primary:</span> {classInfo.primaryAbility}</div>
-            <div><span className="text-red-400">Saves:</span> {classInfo.savingThrows.join(', ')}</div>
-            <div><span className="text-red-400">Skills:</span> Choose {classInfo.skillChoices} from {classInfo.skillsFrom.length}</div>
+            <div><span className="text-red-400">Hit Die:</span> d{classInfo.hitDie || 8}</div>
+            <div><span className="text-red-400">Primary:</span> {classInfo.primaryAbility || '—'}</div>
+            <div><span className="text-red-400">Saves:</span> {savingThrows.join(', ') || '—'}</div>
+            <div><span className="text-red-400">Skills:</span> Choose {classInfo.skillChoices || 2} from {classInfo.skillsFrom?.length || 0}</div>
           </div>
         </div>
       )}
 
+      {/* Stats Box */}
       <div className="bg-dark-purple-950/50 border border-red-700/50 p-4 rounded-lg grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>
           <p className="text-gray-400 text-xs">Hit Points (Level 1)</p>
@@ -143,11 +166,12 @@ export default function ClassTab() {
         </div>
         <div>
           <p className="text-gray-400 text-xs">Saving Throws</p>
-          <p className="text-red-400 font-bold text-sm">{savingThrows.map(s => s.toUpperCase()).join(', ')}</p>
+          <p className="text-red-400 font-bold text-sm">{savingThrows.map(s => s?.toUpperCase()).join(', ')}</p>
         </div>
       </div>
 
-      {levelInfo.features && levelInfo.features.length > 0 && (
+      {/* Level Features */}
+      {levelInfo.features && Array.isArray(levelInfo.features) && levelInfo.features.length > 0 && (
         <div className="bg-dark-purple-950/50 border border-red-700/50 p-4 rounded-lg">
           <h3 className="text-sm font-bold text-red-300 mb-3">⚔️ Level {level} Features</h3>
           <div className="space-y-2">
@@ -167,16 +191,20 @@ export default function ClassTab() {
         </div>
       )}
 
-      {classInfo && (
+      {/* All Features Timeline */}
+      {classInfo.levels && Object.keys(classInfo.levels).length > 0 && (
         <div className="bg-dark-purple-950/50 border border-red-700/50 p-4 rounded-lg">
           <h3 className="text-sm font-bold text-red-300 mb-3">📊 Class Progression</h3>
           <div className="space-y-1 max-h-60 overflow-y-auto text-xs">
-            {Object.entries(classInfo.levels).map(([lvl, data]) => (
-              <div key={lvl} className={`flex gap-2 ${parseInt(lvl) === level ? 'text-red-400 font-bold' : 'text-gray-400'}`}>
-                <span className="min-w-[2rem]">Lvl {lvl}:</span>
-                <span>{data.features?.join(', ')}</span>
-              </div>
-            ))}
+            {Object.entries(classInfo.levels).map(([lvl, data]) => {
+              if (!data) return null;
+              return (
+                <div key={lvl} className={`flex gap-2 ${parseInt(lvl) === level ? 'text-red-400 font-bold' : 'text-gray-400'}`}>
+                  <span className="min-w-[2rem]">Lvl {lvl}:</span>
+                  <span>{data.features?.join(', ') || '—'}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

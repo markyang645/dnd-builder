@@ -1,113 +1,259 @@
 ﻿import React from 'react';
 import { useCharacterStore } from '../../state/store';
 import { getModifier, getProficiencyBonus } from '../../data/dndRules';
-import { skills } from '../../data/skillsData';
 
 export default function CharacterSheetTab() {
   const { character } = useCharacterStore();
-  if (!character) return <div className="p-8 text-center text-gray-400"><h2 className="text-2xl font-bold mb-4">📄 Character Sheet</h2><p>Create a character first</p></div>;
+  
+  if (!character) return (
+    <div className="p-8 text-center">
+      <p className="text-gray-400 text-lg">Create a character first</p>
+    </div>
+  );
+
   const abilities = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
-  const abilityLabels = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
+  const abilityLabels = { 
+    str: 'STR', dex: 'DEX', con: 'CON', 
+    int: 'INT', wis: 'WIS', cha: 'CHA' 
+  };
+  
   const level = character.level || 1;
   const profBonus = getProficiencyBonus(level);
   const skillProficiencies = character.skillProficiencies || [];
-  const getMod = (score) => { const mod = getModifier(score); return mod >= 0 ? `+${mod}` : mod.toString(); };
+  
+  const getMod = (score) => { 
+    const mod = getModifier(score); 
+    return mod >= 0 ? `+${mod}` : mod.toString(); 
+  };
+  
   const getSaveMod = (ability) => {
     const mod = getModifier(character.abilities?.[ability] || 10);
-    const classSaves = { barbarian: ['str','con'], bard: ['dex','cha'], cleric: ['wis','cha'], druid: ['int','wis'], fighter: ['str','con'], monk: ['str','dex'], paladin: ['wis','cha'], ranger: ['str','dex'], rogue: ['dex','int'], sorcerer: ['con','cha'], warlock: ['wis','cha'], wizard: ['int','wis'] };
+    const classSaves = { 
+      barbarian: ['str','con'], bard: ['dex','cha'], cleric: ['wis','cha'], 
+      druid: ['int','wis'], fighter: ['str','con'], monk: ['str','dex'], 
+      paladin: ['wis','cha'], ranger: ['str','dex'], rogue: ['dex','int'], 
+      sorcerer: ['con','cha'], warlock: ['wis','cha'], wizard: ['int','wis'] 
+    };
     const isProficient = character.class && classSaves[character.class]?.includes(ability);
     const total = mod + (isProficient ? profBonus : 0);
     return total >= 0 ? `+${total}` : total.toString();
   };
-  const passivePerception = 10 + getModifier(character.abilities?.wis || 10) + (skillProficiencies.includes('perception') ? profBonus : 0);
+  
+  const passivePerception = 10 + getModifier(character.abilities?.wis || 10) + 
+    (skillProficiencies.includes('perception') ? profBonus : 0);
+
+  // Group skills by ability for better organization
+  const skillsByAbility = {
+    STR: ['athletics'],
+    DEX: ['acrobatics', 'sleightOfHand', 'stealth'],
+    INT: ['arcana', 'history', 'investigation', 'nature', 'religion'],
+    WIS: ['animalHandling', 'insight', 'medicine', 'perception', 'survival'],
+    CHA: ['deception', 'intimidation', 'performance', 'persuasion'],
+  };
+
+  const skillLabels = {
+    acrobatics: 'Acrobatics',
+    animalHandling: 'Animal Handling',
+    arcana: 'Arcana',
+    athletics: 'Athletics',
+    deception: 'Deception',
+    history: 'History',
+    insight: 'Insight',
+    intimidation: 'Intimidation',
+    investigation: 'Investigation',
+    medicine: 'Medicine',
+    nature: 'Nature',
+    perception: 'Perception',
+    performance: 'Performance',
+    persuasion: 'Persuasion',
+    religion: 'Religion',
+    sleightOfHand: 'Sleight of Hand',
+    stealth: 'Stealth',
+    survival: 'Survival',
+  };
+
   return (
-    <div className="p-4 md:p-8 bg-gray-100 min-h-screen overflow-y-auto">
-      <div className="max-w-6xl mx-auto bg-white shadow-2xl p-6 md:p-8 rounded-lg text-black">
-        <div className="border-b-2 border-black pb-4 mb-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div><label className="text-xs font-bold text-gray-500">CHARACTER NAME</label><div className="font-bold border-b">{character.name || '—'}</div></div>
-            <div><label className="text-xs font-bold text-gray-500">CLASS & LEVEL</label><div className="font-bold border-b">{character.class || '—'} {level}</div></div>
-            <div><label className="text-xs font-bold text-gray-500">BACKGROUND</label><div className="font-bold border-b">{character.background || '—'}</div></div>
-            <div><label className="text-xs font-bold text-gray-500">PLAYER NAME</label><div className="font-bold border-b">{character.playerName || '—'}</div></div>
-            <div><label className="text-xs font-bold text-gray-500">RACE</label><div className="font-bold border-b">{character.race || '—'}</div></div>
-            <div><label className="text-xs font-bold text-gray-500">ALIGNMENT</label><div className="font-bold border-b">{character.alignment || '—'}</div></div>
-            <div><label className="text-xs font-bold text-gray-500">XP</label><div className="font-bold border-b">{character.xp || '0'}</div></div>
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-3">
+          <label className="text-xs text-gray-400 uppercase font-bold">Character Name</label>
+          <p className="text-white font-bold text-lg">{character.name || '—'}</p>
+        </div>
+        <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-3">
+          <label className="text-xs text-gray-400 uppercase font-bold">Class & Level</label>
+          <p className="text-white font-bold">{character.class || '—'} {level > 0 ? level : '1'}</p>
+        </div>
+        <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-3">
+          <label className="text-xs text-gray-400 uppercase font-bold">Background</label>
+          <p className="text-white font-bold">{character.background || '—'}</p>
+        </div>
+        <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-3">
+          <label className="text-xs text-gray-400 uppercase font-bold">Player Name</label>
+          <p className="text-white font-bold">{character.playerName || '—'}</p>
+        </div>
+        <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-3">
+          <label className="text-xs text-gray-400 uppercase font-bold">Race</label>
+          <p className="text-white font-bold">{character.race || '—'}</p>
+        </div>
+        <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-3">
+          <label className="text-xs text-gray-400 uppercase font-bold">Alignment</label>
+          <p className="text-white font-bold">{character.alignment || '—'}</p>
+        </div>
+        <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-3">
+          <label className="text-xs text-gray-400 uppercase font-bold">XP</label>
+          <p className="text-white font-bold">{character.xp || '0'}</p>
+        </div>
+        <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-3">
+          <label className="text-xs text-gray-400 uppercase font-bold">Proficiency Bonus</label>
+          <p className="text-white font-bold">+{profBonus}</p>
+        </div>
+      </div>
+
+      {/* Main Stats Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+        {/* Left Column - HP & AC */}
+        <div className="lg:col-span-3 space-y-4">
+          <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-4">
+            <label className="text-xs text-gray-400 uppercase font-bold block mb-2">Hit Points</label>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold text-white">{character.maxHitPoints || 10}</span>
+              <span className="text-sm text-gray-400">max</span>
+            </div>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-2xl font-bold text-red-400">{character.hitPoints || 10}</span>
+              <span className="text-sm text-gray-400">current</span>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">Temp HP: {character.tempHitPoints || 0}</p>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-3 text-center">
+              <label className="text-xs text-gray-400 uppercase font-bold block">AC</label>
+              <p className="text-xl font-bold text-white">{character.armorClass || 10}</p>
+            </div>
+            <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-3 text-center">
+              <label className="text-xs text-gray-400 uppercase font-bold block">Initiative</label>
+              <p className="text-xl font-bold text-white">{getMod(character.abilities?.dex || 10)}</p>
+            </div>
+            <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-3 text-center">
+              <label className="text-xs text-gray-400 uppercase font-bold block">Speed</label>
+              <p className="text-xl font-bold text-white">{character.speed || 30}</p>
+            </div>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
-          <div className="md:col-span-3 space-y-3 border-r-2 border-black pr-4 text-sm">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="border-2 border-black rounded p-2 text-center"><div className="text-xs font-bold">PROFICIENCY BONUS</div><div className="text-xl font-bold">+{profBonus}</div></div>
-              <div className="border-2 border-black rounded p-2 text-center"><div className="text-xs font-bold">INSPIRATION</div><div className="text-xl">○</div></div>
-            </div>
-            <div className="border-2 border-black rounded p-2">
-              <div className="text-xs font-bold">HIT POINTS</div>
-              <div className="flex items-center gap-2"><div className="text-2xl font-bold">{character.maxHitPoints || 10}</div><div className="text-xs text-gray-500">max</div></div>
-              <div className="flex items-center gap-2"><div className="text-2xl font-bold">{character.hitPoints || 10}</div><div className="text-xs text-gray-500">current</div></div>
-              <div className="text-xs">Temp HP: {character.tempHitPoints || 0}</div>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="border-2 border-black rounded p-2 text-center"><div className="text-xs font-bold">AC</div><div className="text-xl font-bold">{character.armorClass || 10}</div></div>
-              <div className="border-2 border-black rounded p-2 text-center"><div className="text-xs font-bold">INITIATIVE</div><div className="text-xl font-bold">{getMod(character.abilities?.dex || 10)}</div></div>
-              <div className="border-2 border-black rounded p-2 text-center"><div className="text-xs font-bold">SPEED</div><div className="text-xl font-bold">{character.speed || 30}</div></div>
-            </div>
-            <div className="border-2 border-black rounded p-2">
-              <div className="text-xs font-bold">DEATH SAVES</div>
-              <div className="flex justify-between mt-2 text-xs"><span>SUCCESSES</span><span>FAILURES</span></div>
-              <div className="flex justify-between mt-1"><div className="flex gap-1">○ ○ ○</div><div className="flex gap-1">○ ○ ○</div></div>
-            </div>
-          </div>
-          <div className="md:col-span-6 grid grid-cols-3 gap-3">
+
+        {/* Middle Column - Ability Scores */}
+        <div className="lg:col-span-6">
+          <div className="grid grid-cols-3 gap-3">
             {abilities.map((ability) => (
-              <div key={ability} className="border-2 border-black rounded-lg p-2 text-center">
-                <div className="text-xs font-bold mb-1">{abilityLabels[ability]}</div>
-                <div className="text-2xl font-bold">{getMod(character.abilities?.[ability] || 10)}</div>
-                <div className="border-2 border-black rounded-full w-12 h-12 mx-auto flex items-center justify-center text-xl font-bold bg-gray-100 mt-1">{character.abilities?.[ability] || 10}</div>
-                <div className="mt-2 text-xs border-t border-gray-300 pt-1"><span className="font-bold">{getSaveMod(ability)}</span></div>
+              <div key={ability} className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-4 text-center">
+                <label className="text-xs text-gray-400 uppercase font-bold block mb-2">
+                  {abilityLabels[ability]}
+                </label>
+                <p className="text-2xl font-bold text-white mb-1">{getMod(character.abilities?.[ability] || 10)}</p>
+                <div className="w-12 h-12 mx-auto rounded-full bg-dark-purple-800 border-2 border-purple-500/50 flex items-center justify-center">
+                  <span className="text-lg font-bold text-white">{character.abilities?.[ability] || 10}</span>
+                </div>
+                <p className="text-xs text-gray-400 mt-2">Save: {getSaveMod(ability)}</p>
               </div>
             ))}
           </div>
-          <div className="md:col-span-3 border-l-2 border-black pl-4">
-            <div className="text-xs font-bold mb-2">SKILLS</div>
-            <div className="space-y-1 text-xs max-h-80 overflow-y-auto">
-              {Object.entries(skills).map(([key, skill]) => {
-                const isProficient = skillProficiencies.includes(key);
-                const abilityMod = getModifier(character.abilities?.[skill.ability] || 10);
-                const total = abilityMod + (isProficient ? profBonus : 0);
-                return (
-                  <div key={key} className="flex items-center justify-between">
-                    <div className="flex items-center gap-1"><div className={`h-2 w-2 rounded-full ${isProficient ? 'bg-green-500' : 'bg-gray-300'}`}></div><span>{skill.name}</span></div>
-                    <div className="font-bold">{total >= 0 ? '+' : ''}{total}</div>
+        </div>
+
+        {/* Right Column - Skills */}
+        <div className="lg:col-span-3">
+          <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-4 h-full">
+            <label className="text-xs text-gray-400 uppercase font-bold block mb-3">Skills</label>
+            <div className="space-y-3">
+              {Object.entries(skillsByAbility).map(([ability, skills]) => (
+                <div key={ability}>
+                  <p className="text-xs font-bold text-purple-400 mb-1">{ability}</p>
+                  <div className="space-y-1">
+                    {skills.map((skillKey) => {
+                      const isProficient = skillProficiencies.includes(skillKey);
+                      const abilityMod = getModifier(character.abilities?.[
+                        skillKey === 'athletics' ? 'str' :
+                        skillKey === 'acrobatics' || skillKey === 'sleightOfHand' || skillKey === 'stealth' ? 'dex' :
+                        skillKey === 'arcana' || skillKey === 'history' || skillKey === 'investigation' || skillKey === 'nature' || skillKey === 'religion' ? 'int' :
+                        skillKey === 'animalHandling' || skillKey === 'insight' || skillKey === 'medicine' || skillKey === 'perception' || skillKey === 'survival' ? 'wis' : 'cha'
+                      ] || 10);
+                      const total = abilityMod + (isProficient ? profBonus : 0);
+                      
+                      return (
+                        <div key={skillKey} className="flex justify-between items-center text-sm">
+                          <span className={`flex items-center gap-1 ${isProficient ? 'text-yellow-400 font-semibold' : 'text-gray-300'}`}>
+                            {isProficient && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>}
+                            {skillLabels[skillKey]}
+                          </span>
+                          <span className={`font-mono ${isProficient ? 'text-yellow-400 font-bold' : 'text-gray-400'}`}>
+                            {total >= 0 ? '+' : ''}{total}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
-            <div className="mt-4 border-t-2 border-black pt-2"><div className="text-xs font-bold">PASSIVE WISDOM (PERCEPTION)</div><div className="text-xl font-bold">{passivePerception}</div></div>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className="border-2 border-black rounded p-4 h-48 overflow-y-auto"><div className="text-xs font-bold border-b border-black pb-1 mb-2">ATTACKS & SPELLCASTING</div><div className="text-sm">{character.class ? `${character.class} Features (Level ${level})` : 'No class selected'}</div></div>
-          <div className="border-2 border-black rounded p-4 h-48 overflow-y-auto"><div className="text-xs font-bold border-b border-black pb-1 mb-2">FEATURES & TRAITS</div><div className="text-sm">{character.race && <div className="font-bold mb-1">{character.race} Traits</div>}{character.features || 'No features added'}</div></div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-          <div className="border-2 border-black rounded p-4">
-            <div className="text-xs font-bold border-b border-black pb-1 mb-2">APPEARANCE</div>
-            <div className="text-xs space-y-1">
-              <div>Age: {character.age || '—'}</div><div>Height: {character.height || '—'}</div><div>Weight: {character.weight || '—'}</div>
-              <div>Eyes: {character.eyes || '—'}</div><div>Hair: {character.hair || '—'}</div>
-            </div>
-          </div>
-          <div className="border-2 border-black rounded p-4 md:col-span-3">
-            <div className="text-xs font-bold border-b border-black pb-1 mb-2">PERSONALITY</div>
-            <div className="text-xs grid grid-cols-2 gap-2">
-              <div><span className="font-bold">Traits:</span> {character.personalityTraits || '—'}</div>
-              <div><span className="font-bold">Ideals:</span> {character.ideals || '—'}</div>
-              <div><span className="font-bold">Bonds:</span> {character.bonds || '—'}</div>
-              <div><span className="font-bold">Flaws:</span> {character.flaws || '—'}</div>
+            
+            {/* Passive Perception */}
+            <div className="mt-4 pt-3 border-t border-purple-500/30">
+              <label className="text-xs text-gray-400 uppercase font-bold block">Passive Wisdom (Perception)</label>
+              <p className="text-2xl font-bold text-white mt-1">{passivePerception}</p>
             </div>
           </div>
         </div>
-        <div className="border-2 border-black rounded p-4"><div className="text-xs font-bold border-b border-black pb-1 mb-2">CHARACTER BACKSTORY</div><div className="text-sm">{character.backstory || 'No backstory written'}</div></div>
+      </div>
+
+      {/* Attacks & Features */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-4">
+          <label className="text-xs text-gray-400 uppercase font-bold block mb-2">Attacks & Spellcasting</label>
+          <p className="text-gray-300 text-sm">
+            {character.class ? `${character.class} Features (Level ${level})` : 'No class selected'}
+          </p>
+        </div>
+        <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-4">
+          <label className="text-xs text-gray-400 uppercase font-bold block mb-2">Features & Traits</label>
+          <p className="text-gray-300 text-sm">
+            {character.race && `${character.race} Traits`}
+            {character.features || 'No features added'}
+          </p>
+        </div>
+      </div>
+
+      {/* Appearance & Personality */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-4">
+          <label className="text-xs text-gray-400 uppercase font-bold block mb-3">Appearance</label>
+          <div className="space-y-1 text-sm">
+            <p><span className="text-gray-400">Age:</span> <span className="text-white">{character.age || '—'}</span></p>
+            <p><span className="text-gray-400">Height:</span> <span className="text-white">{character.height || '—'}</span></p>
+            <p><span className="text-gray-400">Weight:</span> <span className="text-white">{character.weight || '—'}</span></p>
+            <p><span className="text-gray-400">Eyes:</span> <span className="text-white">{character.eyes || '—'}</span></p>
+            <p><span className="text-gray-400">Hair:</span> <span className="text-white">{character.hair || '—'}</span></p>
+          </div>
+        </div>
+        <div className="md:col-span-2 bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-4">
+          <label className="text-xs text-gray-400 uppercase font-bold block mb-3">Personality</label>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="mb-2"><span className="text-gray-400">Traits:</span> <span className="text-white">{character.personalityTraits || '—'}</span></p>
+              <p><span className="text-gray-400">Bonds:</span> <span className="text-white">{character.bonds || '—'}</span></p>
+            </div>
+            <div>
+              <p className="mb-2"><span className="text-gray-400">Ideals:</span> <span className="text-white">{character.ideals || '—'}</span></p>
+              <p><span className="text-gray-400">Flaws:</span> <span className="text-white">{character.flaws || '—'}</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Backstory */}
+      <div className="bg-dark-purple-900/50 border border-purple-500/30 rounded-lg p-4">
+        <label className="text-xs text-gray-400 uppercase font-bold block mb-2">Character Backstory</label>
+        <p className="text-gray-300 text-sm">{character.backstory || 'No backstory written'}</p>
       </div>
     </div>
   );

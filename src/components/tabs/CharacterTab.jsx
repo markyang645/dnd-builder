@@ -18,19 +18,21 @@ export default function CharacterTab() {
 
   const race = character.race || '';
   const subrace = character.subrace || '';
-  const raceInfo = raceData[race];
   
-  // Safely get subraces (ensure it's an array)
-  const subraces = Array.isArray(raceInfo?.subraces) ? raceInfo.subraces : [];
-  const subraceInfo = subraces.find(sr => sr.name === subrace);
+  // ULTRA-SAFE: Ensure raceInfo is always an object with expected structure
+  const raceInfo = raceData[race] || {};
+  
+  // ULTRA-SAFE: Ensure subraces is always an array
+  const subraces = (raceInfo.subraces && Array.isArray(raceInfo.subraces)) ? raceInfo.subraces : [];
+  const subraceInfo = subraces.length > 0 ? subraces.find(sr => sr && sr.name === subrace) : undefined;
 
-  // Get features (race + subrace)
+  // ULTRA-SAFE: Build features array with null checks
   const features = [];
-  if (raceInfo?.features && Array.isArray(raceInfo.features)) {
-    features.push(...raceInfo.features);
+  if (raceInfo.features && Array.isArray(raceInfo.features)) {
+    features.push(...raceInfo.features.filter(f => f && f.name));
   }
-  if (subraceInfo?.features && Array.isArray(subraceInfo.features)) {
-    features.push(...subraceInfo.features);
+  if (subraceInfo && subraceInfo.features && Array.isArray(subraceInfo.features)) {
+    features.push(...subraceInfo.features.filter(f => f && f.name));
   }
 
   return (
@@ -38,6 +40,7 @@ export default function CharacterTab() {
       <h2 className="text-2xl font-bold text-white drop-shadow-lg">✨ Character Identity</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Character Name */}
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-purple-300">Character Name</label>
           <input
@@ -50,6 +53,7 @@ export default function CharacterTab() {
           />
         </div>
 
+        {/* Race */}
         <div>
           <label className="block text-sm font-medium text-purple-300">Race</label>
           <select
@@ -59,12 +63,17 @@ export default function CharacterTab() {
             className="input-field mt-1"
           >
             <option value="">Select Race</option>
-            {Object.keys(raceData).map(r => (
-              <option key={r} value={r}>{raceData[r].name}</option>
-            ))}
+            {Object.keys(raceData || {}).map(r => {
+              const raceEntry = raceData[r];
+              if (!raceEntry || !raceEntry.name) return null;
+              return (
+                <option key={r} value={r}>{raceEntry.name}</option>
+              );
+            })}
           </select>
         </div>
 
+        {/* Subrace */}
         <div>
           <label className="block text-sm font-medium text-purple-300">Subrace</label>
           <select
@@ -72,15 +81,19 @@ export default function CharacterTab() {
             value={subrace}
             onChange={handleChange}
             className="input-field mt-1"
-            disabled={subraces.length === 0}
+            disabled={!subraces || subraces.length === 0}
           >
             <option value="">Select Subrace</option>
-            {subraces.map(sr => (
-              <option key={sr.name} value={sr.name}>{sr.name}</option>
-            ))}
+            {(subraces || []).map(sr => {
+              if (!sr || !sr.name) return null;
+              return (
+                <option key={sr.name} value={sr.name}>{sr.name}</option>
+              );
+            })}
           </select>
         </div>
 
+        {/* Alignment */}
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-purple-300">Alignment</label>
           <select
@@ -103,16 +116,36 @@ export default function CharacterTab() {
         </div>
       </div>
 
-      {features.length > 0 && (
+      {/* Race Description */}
+      {raceInfo && raceInfo.description && (
+        <div className="bg-dark-purple-950/50 border border-purple-700/50 p-4 rounded-lg">
+          <h3 className="text-sm font-bold text-purple-300 mb-2">📖 {raceInfo.name || 'Race'} Description</h3>
+          <p className="text-gray-300 text-sm whitespace-pre-line">{raceInfo.description}</p>
+        </div>
+      )}
+
+      {/* Subrace Description */}
+      {subraceInfo && subraceInfo.description && (
+        <div className="bg-dark-purple-950/50 border border-purple-700/50 p-4 rounded-lg">
+          <h3 className="text-sm font-bold text-purple-300 mb-2">🌟 {subraceInfo.name || 'Subrace'} Details</h3>
+          <p className="text-gray-300 text-sm whitespace-pre-line">{subraceInfo.description}</p>
+        </div>
+      )}
+
+      {/* Features */}
+      {features && features.length > 0 && (
         <div className="bg-dark-purple-950/50 border border-purple-700/50 p-4 rounded-lg">
           <h3 className="text-sm font-bold text-purple-300 mb-3">🧬 Racial Features</h3>
-          <div className="space-y-2">
-            {features.map((feature, i) => (
-              <div key={i} className="text-sm text-gray-300">
-                <span className="text-purple-400 font-semibold">{feature.name}:</span>
-                <span className="text-gray-400 ml-2">{feature.description}</span>
-              </div>
-            ))}
+          <div className="space-y-3">
+            {features.map((feature, i) => {
+              if (!feature || !feature.name) return null;
+              return (
+                <div key={i} className="text-sm text-gray-300">
+                  <span className="text-purple-400 font-semibold block">{feature.name}</span>
+                  <span className="text-gray-400 ml-2 whitespace-pre-line">{feature.description || ''}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
